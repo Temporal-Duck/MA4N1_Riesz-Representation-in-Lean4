@@ -26,15 +26,23 @@ def Orthogonal (x y : V) : Prop := ⟪x, y⟫_𝕂 = 0
 notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogonal x y
 
 -- Defn: operator norm for inner product spaces -> using defn in 6.1
-noncomputable def operatorNorm (F : V →L[𝕂] 𝕂) : ℝ := by sorry
+noncomputable def OperatorNorm (F : V →L[𝕂] 𝕂) : ℝ := by sorry
 --   might need dual spaces ??
 --   sSup {|F x| | x : V, ‖x‖ ≤ 1} ??
 
 end IPS
 
 namespace HS -- Hilbert Spaces
+
+open IPS
 -- Define Hilbert space (assuming Completeness from Mathlib)
+variable {𝕂 H : Type*} [RCLike 𝕂] [SeminormedAddCommGroup H] [Module 𝕂 H] -- Vector space
+variable [InnerProductSpace 𝕂 H] [CompleteSpace H]-- Hilbert space
+
 -- Define Orthogonal complement of a set
+noncomputable def OrthogonalComplement (U : Set H) : Set H := {y : H | ∀ x ∈ U, Orthogonal x y}
+notation U "⟂" => OrthogonalComplement U -- ^^ FIX ABOVE LATER - akrea
+
 -- Prop 5.18: Closest point on a convex set
 -- Thm: For U closed linear subspace, H = U ⨁ U^⟂
 end HS
