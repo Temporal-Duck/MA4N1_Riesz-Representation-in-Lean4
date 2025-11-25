@@ -79,9 +79,11 @@ variable {G : Type*} [Group G]
 #check (inv_mul_cancel : ∀ a : G, a⁻¹ * a = 1)
 -- Prove the following using only the above axioms
 theorem mul_inv_cancel (a : G) : a * a⁻¹ = 1 := by
+  -- rw [← inv_mul_cancel a⁻¹, inv_inv]
   sorry
 
 theorem mul_one (a : G) : a * 1 = a := by
+  -- rw [← inv_mul_cancel a, ← mul_assoc, mul_inv_cancel, one_mul]
   sorry
 
 theorem mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ := by
@@ -108,10 +110,18 @@ example : 2*a*b ≤ a^2 + b^2 := by
 
 -- Exercise proof
 example : |a*b| ≤ (a^2 + b^2)/2 := by
+  --apply abs_le.mpr
+  --have p1 : -((a^2 + b^2)/2)  ≤ a*b := by linarith [sq_nonneg (a+b)]
+  --have p2 : a*b ≤ (a^2 + b^2)/2 := by linarith [sq_nonneg (a-b)]
+  --exact ⟨p1, p2⟩
   sorry
+
+#check abs_le --Use this for the above
 
 end s_2_3
 
 namespace s_2_4 -- Section 2.4 - More examples using apply and rw
+
+
 
 end s_2_4
