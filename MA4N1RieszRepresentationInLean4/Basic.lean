@@ -25,6 +25,11 @@ theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖
 def Orthogonal (x y : V) : Prop := ⟪x, y⟫_𝕂 = 0
 notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogonal x y
 
+-- Defn: operator norm for inner product spaces -> using defn in 6.1
+noncomputable def operatorNorm (F : V →L[𝕂] 𝕂) : ℝ := by sorry
+--   might need dual spaces ??
+--   sSup {|F x| | x : V, ‖x‖ ≤ 1} ??
+
 end IPS
 
 namespace HS -- Hilbert Spaces
