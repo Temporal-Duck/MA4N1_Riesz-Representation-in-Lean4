@@ -18,9 +18,12 @@ variable [InnerProductSpace 𝕂 V] -- Inner product space
 example (x : V) : ⟪x, 0⟫_𝕂 = 0 := by exact inner_zero_right x
 example (x : V) : ⟪x, x⟫_𝕂 = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
 
--- Thm: Cauchy-Schwarz inequality
-theorem cauchy_schwarz (x y : V) : ‖ ⟪x , y⟫_𝕂 ‖_𝕂 ≤ ‖x‖ * ‖y‖ := by sorry
+-- Thm: Cauchy-Schwartz inequality
+theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖ := by sorry
+
 -- Define orthogonality
+def Orthogonal (x y : V) : Prop := ⟪x, y⟫_𝕂 = 0
+notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogonal x y
 
 end IPS
 
