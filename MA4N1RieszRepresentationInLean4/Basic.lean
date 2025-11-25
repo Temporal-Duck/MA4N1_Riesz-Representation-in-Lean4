@@ -19,8 +19,14 @@ example (x : V) : ⟪x, 0⟫_𝕂 = 0 := by exact inner_zero_right x
 example (x : V) : ⟪x, x⟫_𝕂 = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
 
 -- Thm: Cauchy-Schwarz inequality
-theorem cauchy_schwarz (x y : V) : ‖ ⟪x , y⟫_𝕂 ‖_𝕂 ≤ ‖x‖ * ‖y‖ := by sorry
+theorem cauchy_schwarz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖ := by sorry
 -- Define orthogonality
+
+-- Defn: operator norm for inner product spaces -> using defn in 6.1
+noncomputable def operatorNorm (F : V →L[𝕂] 𝕂) : ℝ := by sorry
+--   might need dual spaces ??
+--   sSup {|F x| | x : V, ‖x‖ ≤ 1} ??
+
 
 end IPS
 
