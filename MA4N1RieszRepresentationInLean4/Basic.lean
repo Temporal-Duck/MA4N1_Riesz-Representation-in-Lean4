@@ -50,4 +50,11 @@ end HS
 namespace RRT -- Riesz Representation Theorem
 -- Example 6.10 + Claim
 -- Thm: Riesz Representation Theorem
+
+theorem Rietz_rep (G: V →L[𝕂] 𝕂) :
+  ∃! y : V,
+    (∀ x : V, G x = ⟪x, y⟫_𝕂) ∧
+    ‖G‖ = ‖y‖ := by
+  sorry
+
 end RRT
