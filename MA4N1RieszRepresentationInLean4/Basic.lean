@@ -4,7 +4,7 @@ import Mathlib.Tactic
 
 -- To do:
 
-namespace IPS -- Inner Product Spaces
+-- Inner Product Spaces
 -- IGNORE THESE FOR NOW
 -- Define inner product
 -- Define inner product space
@@ -29,31 +29,29 @@ notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogona
 noncomputable def OperatorNorm (F : V →L[𝕂] 𝕂) : ℝ :=
   sSup (Set.image (fun x => ‖F x‖) { x : V | ‖x‖ ≤ 1 })
 
-end IPS
 
-namespace HS -- Hilbert Spaces
 
-open IPS
+-- Hilbert Spaces
+
+
 -- Define Hilbert space (assuming Completeness from Mathlib)
 variable {𝕂 H : Type*} [RCLike 𝕂] [SeminormedAddCommGroup H] [Module 𝕂 H] -- Vector space
 variable [InnerProductSpace 𝕂 H] [CompleteSpace H]-- Hilbert space
 
 -- Define Orthogonal complement of a set
-noncomputable def OrthogonalComplement (U : Set H) : Set H := {y : H | ∀ x ∈ U, Orthogonal x y}
+noncomputable def OrthogonalComplement (U : Set H) : Set H := {y : H | ∀ x ∈ U Orthogonal x y}
 notation U "⟂" => OrthogonalComplement U -- ^^ FIX ABOVE LATER - akrea
 
 -- Prop 5.18: Closest point on a convex set
 -- Thm: For U closed linear subspace, H = U ⨁ U^⟂
-end HS
 
-namespace RRT -- Riesz Representation Theorem
+
+ -- Riesz Representation Theorem
 -- Example 6.10 + Claim
 -- Thm: Riesz Representation Theorem
 
-theorem Rietz_rep (G: V →L[𝕂] 𝕂) :
+theorem Riesz_rep (G : V →L[𝕂] 𝕂) :
   ∃! y : V,
-    (∀ x : V, G x = ⟪x, y⟫_𝕂) ∧
-    ‖G‖ = ‖y‖ := by
+    (∀ x : V, G x = ⟪x , y⟫_𝕂) ∧
+    ‖G‖  = ‖y‖ := by
   sorry
-
-end RRT
