@@ -12,14 +12,19 @@ import Mathlib.Tactic
 
 open InnerProductSpace
 
-variable {𝕂 V : Type} [RCLike 𝕂] [SeminormedAddCommGroup V] [Module 𝕂 V] -- Vector space
+variable {𝕂 : Type*} [RCLike 𝕂] {V : Type*} [SeminormedAddCommGroup V] [Module 𝕂 V] -- Vector space
 variable [InnerProductSpace 𝕂 V] -- Inner product space
-
+#check InnerProductSpace
 example (x : V) : ⟪x, 0⟫_𝕂 = 0 := by exact inner_zero_right x
 example (x : V) : ⟪x, x⟫_𝕂 = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
 
 -- Thm: Cauchy-Schwartz inequality
 theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖ := by sorry
+
+example (x y : V) (h : ‖y‖ ≤ 1) :  ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ := by
+  #check @cauchy_schwartz 𝕂 _ V _ _ _ x y
+  linarith [h, @cauchy_schwartz 𝕂 _ V _ _ _ x y]
+  sorry
 
 -- Define orthogonality
 def Orthogonal (x y : V) : Prop := ⟪x, y⟫_𝕂 = 0
@@ -39,7 +44,7 @@ variable {𝕂 H : Type*} [RCLike 𝕂] [SeminormedAddCommGroup H] [Module 𝕂 
 variable [InnerProductSpace 𝕂 H] [CompleteSpace H]-- Hilbert space
 
 -- Define Orthogonal complement of a set
-noncomputable def OrthogonalComplement (U : Set H) : Set H := {y : H | ∀ x ∈ U Orthogonal x y}
+noncomputable def OrthogonalComplement (U : Set H) : Set H := {y : H | ∀ x ∈ U, Orthogonal x y}
 notation U "⟂" => OrthogonalComplement U -- ^^ FIX ABOVE LATER - akrea
 
 -- Prop 5.18: Closest point on a convex set
@@ -50,8 +55,8 @@ notation U "⟂" => OrthogonalComplement U -- ^^ FIX ABOVE LATER - akrea
 -- Example 6.10 + Claim
 -- Thm: Riesz Representation Theorem
 
-theorem Riesz_rep (G : V →L[𝕂] 𝕂) :
-  ∃! y : V,
-    (∀ x : V, G x = ⟪x , y⟫_𝕂) ∧
-    ‖G‖  = ‖y‖ := by
+theorem Riesz_rep (G : H →L[𝕂] 𝕂) :
+  ∃! y : H,
+    (∀ x : H, G x = ⟪x , y⟫_𝕂) ∧
+    OperatorNorm G  = ‖y‖ := by
   sorry
