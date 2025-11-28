@@ -19,6 +19,14 @@ variable [InnerProductSpace 𝕂 V] -- Inner product space
 example (x : V) : ⟪x, 0⟫_𝕂 = 0 := by exact inner_zero_right x
 example (x : V) : ⟪x, x⟫_𝕂 = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
 
+def LinearSubspace {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
+  [InnerProductSpace 𝕜 E] (U : Set E) : Prop :=
+  ∀ (x y : E) (α β : 𝕜), x ∈ U → y ∈ U → α • x + β • y ∈ U
+
+def ClosedLinearSubspace {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
+  [InnerProductSpace 𝕜 E] [TopologicalSpace E] (U : Set E) : Prop :=
+  LinearSubspace (𝕜 := 𝕜) (U : Set E) ∧ IsClosed U
+
 -- Thm: Cauchy-Schwartz inequality
 theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖ := by
   -- Use the built-in Cauchy–Schwarz facts in mathlib.
