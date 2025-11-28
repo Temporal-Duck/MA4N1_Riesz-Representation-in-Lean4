@@ -43,7 +43,7 @@ theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖
 def Orthogonal {E : Type*} [SeminormedAddCommGroup E] [InnerProductSpace 𝕂 E]
   (x y : E) : Prop := ⟪x, y⟫_𝕂 = 0
 notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogonal x y
--- Orthonormal had already been declered (might want to do it ourselves)
+-- Orthonormal had already been declared (might want to do it ourselves)
 
 -- Defn: Orthogonal set (maybe use this to update Orthonormal set later?)
 def OrthogonalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
@@ -54,6 +54,10 @@ def OrthogonalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGro
 def OrthonormalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
   [InnerProductSpace 𝕜 E] (S : Set E) : Prop :=
   (∀ x ∈ S, ‖x‖ = 1) ∧ OrthogonalSet (𝕜 := 𝕜) S
+
+-- LinearIndependent had already been declared (might want to do it ourselves)
+
+
 
 -- Defn: operator norm for inner product spaces -> using defn in 6.1
 noncomputable def OperatorNorm (F : V →L[𝕂] 𝕂) : ℝ :=
@@ -77,8 +81,13 @@ notation U "⟂" => OrthogonalComplement U -- ^^ FIX ABOVE LATER - akrea
 -- Prop 5.18: Closest point on a convex set
 -- Thm: For U closed linear subspace, H = U ⨁ U^⟂
 
+def Projection (P : H →L[𝕂] H) : Prop :=
+  ∀ x : H, P (P x) = P x
 
- -- Riesz Representation Theorem
+def OrthogonalProjection (P : H →L[𝕂] H) : Prop :=
+  Projection P ∧ ∀ (x y : H), P y = 0 → ⟪P x, y⟫_𝕂 = 0
+
+-- Riesz Representation Theorem
 -- Example 6.10 + Claim
 -- Thm: Riesz Representation Theorem
 
