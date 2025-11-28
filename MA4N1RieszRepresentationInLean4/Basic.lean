@@ -43,6 +43,7 @@ theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖
 def Orthogonal {E : Type*} [SeminormedAddCommGroup E] [InnerProductSpace 𝕂 E]
   (x y : E) : Prop := ⟪x, y⟫_𝕂 = 0
 notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogonal x y
+-- Orthonormal had already been declered (might want to do it ourselves)
 
 -- Defn: Orthogonal set (maybe use this to update Orthonormal set later?)
 def OrthogonalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
