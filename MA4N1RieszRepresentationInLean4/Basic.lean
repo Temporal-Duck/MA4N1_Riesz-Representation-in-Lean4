@@ -1,5 +1,6 @@
 import Mathlib.Tactic
 
+
 -- This file is for the formalisation
 
 -- To do:
@@ -57,7 +58,9 @@ def OrthonormalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGr
 noncomputable def OperatorNorm (F : V →L[𝕂] 𝕂) : ℝ :=
   sSup (Set.image (fun x => ‖F x‖) { x : V | ‖x‖ ≤ 1 })
 
-
+def convexset {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
+  ∀ (x y : V) (_hx : x ∈ S) (_hy : y ∈ S) (t : ℝ) (_ht : 0 ≤ t ∧ t ≤ 1),
+    (1 - t) • x + t • y ∈ S
 
 -- Hilbert Spaces
 
