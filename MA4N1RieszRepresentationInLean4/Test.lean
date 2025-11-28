@@ -77,7 +77,7 @@ variable {G : Type*} [Group G]
 #check (mul_assoc : ∀ a b c : G, a * b * c = a * (b * c))
 #check (one_mul : ∀ a : G, 1 * a = a)
 #check (inv_mul_cancel : ∀ a : G, a⁻¹ * a = 1)
--- Prove the following using only the above axioms
+-- Prove the following using the above axioms
 theorem mul_inv_cancel (a : G) : a * a⁻¹ = 1 := by
   sorry
 
@@ -108,10 +108,87 @@ example : 2*a*b ≤ a^2 + b^2 := by
 
 -- Exercise proof
 example : |a*b| ≤ (a^2 + b^2)/2 := by
-  sorry
+  refine abs_le'.mpr ?_
+  have p1 : a * b ≤ (a^2 + b^2)/2 := by linarith [sq_nonneg (a - b)]
+  have p2 : -(a * b) ≤ (a^2 + b^2)/2 := by linarith [sq_nonneg (a + b)]
+  exact ⟨p1, p2⟩
 
 end s_2_3
 
 namespace s_2_4 -- Section 2.4 - More examples using apply and rw
+
+variable (a b c : ℝ)
+
+def c_le_a : Prop := c ≤ a
+
+#check (min_le_left a b : min a b ≤ a)
+#check (min_le_right a b : min a b ≤ b)
+#check le_min
+#check le_max_left a b
+#check max_le
+
+example : max a b = max b a := by
+  apply le_antisymm
+  · apply max_le
+    · apply le_max_right
+    · apply le_max_left
+  · apply max_le
+    · apply le_max_right
+    · apply le_max_left
+
+#check min_comm a b
+
+example : min (min a b) c = min a (min b c) := by
+  apply le_antisymm
+  · apply le_min
+    · calc
+        min (min a b) c ≤ min a b := by exact min_le_left (min a b) c
+        _ ≤ a := by exact min_le_left a b
+    · have h1 : min (min a b) c ≤ b := by
+        calc
+          min (min a b) c ≤ min a b := by exact min_le_left (min a b) c
+          _ ≤ b := by exact min_le_right a b
+      have h2 : min (min a b) c ≤ c := by exact min_le_right (min a b) c
+      exact le_min h1 h2
+  · apply le_min
+    · apply le_min
+      · apply min_le_left
+      · calc
+          min a (min b c) ≤ min b c := by exact min_le_right a (min b c)
+          _ ≤ b := by exact min_le_left b c
+    · calc
+        min a (min b c) ≤ min b c := by exact min_le_right a (min b c)
+        _ ≤ c := by exact min_le_right b c
+
+theorem aux : min a b + c ≤ min (a + c) (b + c) := by
+  sorry
+
+#check add_neg_cancel_right
+#check le_min
+
+example : min a b + c = min (a + c) (b + c) := by
+  apply le_antisymm_iff.mpr
+  have h1 : min a b + c ≤ min (a + c) (b + c) := by exact aux a b c
+  have h2 : min (a + c) (b + c) ≤ min a b + c := by
+    have h21 : min (a + c) (b + c) - c ≤ a := by linarith [min_le_left (a + c) (b + c)]
+    have h22 : min (a + c) (b + c) - c ≤ b := by linarith [min_le_right (a + c) (b + c)]
+    linarith [le_min h21 h22]
+  exact ⟨h1, h2⟩
+
+#check abs_add_le (a-b) b
+#check add_sub_cancel_right a b
+#check sub_add_cancel
+
+example : |a| - |b| ≤ |a - b| := by
+  -- |a| - |b| + |b| ≤ |a - b| + |b| by adding |b| then sub_add_cancel
+  --  |a| = |a - b + b| ≤ |a - b| + |b| by abs_add_le
+  have h : |a - b + b| = |a| := by
+    refine abs_eq_abs.mpr ?_
+    rw [sub_add_cancel a b]
+    exact mul_self_eq_mul_self_iff.mp rfl --????? use more elegant soln later
+  linarith [abs_add_le (a-b) b]
+
+example : |a| - |b| ≤ |a - b| := by
+  sorry
 
 end s_2_4
