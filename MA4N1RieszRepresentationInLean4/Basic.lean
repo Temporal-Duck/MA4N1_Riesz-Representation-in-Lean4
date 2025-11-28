@@ -4,22 +4,59 @@ import Mathlib.Tactic
 
 -- To do:
 
-namespace IPS -- Inner Product Spaces
+-- Inner Product Spaces
+-- IGNORE THESE FOR NOW
 -- Define inner product
 -- Define inner product space
 -- Define natural norm of an inner product
--- Thm: Cauchy-Schwarz inequality
--- Define orthogonality
-end IPS
 
-namespace HS -- Hilbert Spaces
+open InnerProductSpace
+
+variable {𝕂 : Type*} [RCLike 𝕂] {V : Type*} [SeminormedAddCommGroup V] [Module 𝕂 V] -- Vector space
+variable [InnerProductSpace 𝕂 V] -- Inner product space
+#check InnerProductSpace
+example (x : V) : ⟪x, 0⟫_𝕂 = 0 := by exact inner_zero_right x
+example (x : V) : ⟪x, x⟫_𝕂 = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
+
+-- Thm: Cauchy-Schwartz inequality
+theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖ := by sorry
+
+example (x y : V) (h : ‖y‖ ≤ 1) :  ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ := by
+  #check @cauchy_schwartz 𝕂 _ V _ _ _ x y
+  linarith [h, @cauchy_schwartz 𝕂 _ V _ _ _ x y]
+  sorry
+
+-- Define orthogonality
+def Orthogonal (x y : V) : Prop := ⟪x, y⟫_𝕂 = 0
+notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogonal x y
+
+-- Defn: operator norm for inner product spaces -> using defn in 6.1
+noncomputable def OperatorNorm (F : V →L[𝕂] 𝕂) : ℝ :=
+  sSup (Set.image (fun x => ‖F x‖) { x : V | ‖x‖ ≤ 1 })
+
+
+
+-- Hilbert Spaces
+
+
 -- Define Hilbert space (assuming Completeness from Mathlib)
+variable {𝕂 H : Type*} [RCLike 𝕂] [SeminormedAddCommGroup H] [Module 𝕂 H] -- Vector space
+variable [InnerProductSpace 𝕂 H] [CompleteSpace H]-- Hilbert space
+
 -- Define Orthogonal complement of a set
+noncomputable def OrthogonalComplement (U : Set H) : Set H := {y : H | ∀ x ∈ U, Orthogonal x y}
+notation U "⟂" => OrthogonalComplement U -- ^^ FIX ABOVE LATER - akrea
+
 -- Prop 5.18: Closest point on a convex set
 -- Thm: For U closed linear subspace, H = U ⨁ U^⟂
-end HS
 
-namespace RRT -- Riesz Representation Theorem
+
+ -- Riesz Representation Theorem
 -- Example 6.10 + Claim
 -- Thm: Riesz Representation Theorem
-end RRT
+
+theorem Riesz_rep (G : H →L[𝕂] 𝕂) :
+  ∃! y : H,
+    (∀ x : H, G x = ⟪x , y⟫_𝕂) ∧
+    OperatorNorm G  = ‖y‖ := by
+  sorry
