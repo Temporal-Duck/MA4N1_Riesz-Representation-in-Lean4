@@ -43,9 +43,15 @@ def Orthogonal {E : Type*} [SeminormedAddCommGroup E] [InnerProductSpace 𝕂 E]
   (x y : E) : Prop := ⟪x, y⟫_𝕂 = 0
 notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogonal x y
 
-def OrthonormalSet {E : Type*} [SeminormedAddCommGroup E] [InnerProductSpace 𝕂 E]
-  (S : Set E) : Prop :=
-  (∀ x ∈ S, ‖x‖ = 1) ∧ (∀ x ∈ S, ∀ y ∈ S, x ≠ y → ⟪x, y⟫_𝕂 = 0)
+-- Defn: Orthogonal set (maybe use this to update Orthonormal set later?)
+def OrthogonalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
+  [InnerProductSpace 𝕜 E] (S : Set E) : Prop := ∀ x ∈ S, ∀ y ∈ S, x ≠ y → ⟪x,y⟫_𝕜 = 0
+
+
+-- Defn: Orthonormal set - using OrthogonalSet
+def OrthonormalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
+  [InnerProductSpace 𝕜 E] (S : Set E) : Prop :=
+  (∀ x ∈ S, ‖x‖ = 1) ∧ OrthogonalSet (𝕜 := 𝕜) S
 
 -- Defn: operator norm for inner product spaces -> using defn in 6.1
 noncomputable def OperatorNorm (F : V →L[𝕂] 𝕂) : ℝ :=
