@@ -13,9 +13,9 @@ import Mathlib.Tactic
 
 open InnerProductSpace
 
-variable {𝕂 : Type*} [RCLike 𝕂] {V : Type*} [SeminormedAddCommGroup V] -- Vector space
-variable [InnerProductSpace 𝕂 V] -- Inner product space
-#check InnerProductSpace
+variable {𝕂 : Type*} [RCLike 𝕂] -- Field 𝕂 = ℝ or ℂ
+variable {V : Type*} [SeminormedAddCommGroup V] [InnerProductSpace 𝕂 V] -- Inner product space
+
 example (x : V) : ⟪x, 0⟫_𝕂 = 0 := by exact inner_zero_right x
 example (x : V) : ⟪x, x⟫_𝕂 = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
 
@@ -71,7 +71,7 @@ def OrthonormalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGr
 noncomputable def OperatorNorm (F : V →L[𝕂] 𝕂) : ℝ :=
   sSup (Set.image (fun x => ‖F x‖) { x : V | ‖x‖ ≤ 1 })
 
-def convexset {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
+def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
   ∀ (x y : V) (_hx : x ∈ S) (_hy : y ∈ S) (t : ℝ) (_ht : 0 ≤ t ∧ t ≤ 1),
     (1 - t) • x + t • y ∈ S
 
@@ -79,12 +79,12 @@ def convexset {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
 
 
 -- Define Hilbert space (assuming Completeness from Mathlib)
-variable {𝕂 H : Type*} [RCLike 𝕂] [SeminormedAddCommGroup H] -- Vector space
-variable [InnerProductSpace 𝕂 H] [CompleteSpace H]-- Hilbert space
+variable {H : Type*} [SeminormedAddCommGroup H] [InnerProductSpace 𝕂 H]
+variable [CompleteSpace H] -- Hilbert Space
 
 -- Define Orthogonal complement of a set
 noncomputable def OrthogonalComplement (U : Set H) : Set H := {y : H | ∀ x ∈ U, ⟪x, y⟫_𝕂 = 0}
-notation U "⟂" => OrthogonalComplement U -- ^^ FIX ABOVE LATER - akrea
+notation U "⟂" => OrthogonalComplement U
 
 -- Prop 5.18: Closest point on a convex set
 -- Thm: For U closed linear subspace, H = U ⨁ U^⟂
@@ -99,7 +99,7 @@ def OrthogonalProjection (P : H →L[𝕂] H) : Prop :=
 -- Example 6.10 + Claim
 -- Thm: Riesz Representation Theorem
 
-theorem Riesz_rep (G : H →L[𝕂] 𝕂) :
+theorem riesz_rep (G : H →L[𝕂] 𝕂) :
   ∃! y : H,
     (∀ x : H, G x = ⟪x , y⟫_𝕂) ∧
     OperatorNorm G  = ‖y‖ := by
