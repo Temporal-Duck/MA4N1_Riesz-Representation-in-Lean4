@@ -11,3 +11,6 @@ def v2 : V := ![0,0,0]
 
 #eval Orthogonal v1 v2
 #eval v1 ⟂ v2
+
+-- hey rithin ~
+-- ive hacked ur computer

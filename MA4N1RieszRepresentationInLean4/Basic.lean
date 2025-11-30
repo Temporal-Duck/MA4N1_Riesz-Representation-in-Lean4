@@ -1,10 +1,5 @@
 import Mathlib.Tactic
 
-
--- This file is for the formalisation
-
--- To do:
-
 -- INNER PRODUCT SPACES
 
 -- Define inner product
@@ -40,7 +35,6 @@ theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖
   have sq_ineq : ‖⟪x, y⟫_𝕂‖ ^ 2 ≤ ‖x‖ ^ 2 * ‖y‖ ^ 2 := by
     have h' := by simpa [norm_inner_symm] using h
     simpa [pow_two, ← norm_sq_eq_re_inner x, ← norm_sq_eq_re_inner y] using h'
-
   -- Take square-roots (both sides are nonnegative) and simplify sqrt-of-square to obtain the result
   calc
       ‖⟪x, y⟫_𝕂‖ = √(‖⟪x, y⟫_𝕂‖ ^ 2) := by simp [Real.sqrt_sq (norm_nonneg _)]
@@ -75,9 +69,11 @@ noncomputable def OperatorNorm (F : V →L[𝕂] 𝕂) : ℝ :=
 def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
   ∀ (x y : V) (_hx : x ∈ S) (_hy : y ∈ S) (t : ℝ) (_ht : 0 ≤ t ∧ t ≤ 1),
     (1 - t) • x + t • y ∈ S
+-- NOTE: Might be better to use 𝕂 = ℂ since notes assume complex Hilbert spaces. It would also
+-- make ConvexSet easier to apply as we run into issues treating V as an ℝ-module - Akira
+
 
 -- HILBERT SPACES
-
 
 -- Define Hilbert space (assuming Completeness from Mathlib)
 variable {H : Type*} [SeminormedAddCommGroup H] [InnerProductSpace 𝕂 H]
@@ -101,6 +97,7 @@ def Projection (P : H →L[𝕂] H) : Prop :=
 
 def OrthogonalProjection (P : H →L[𝕂] H) : Prop :=
   Projection P ∧ ∀ (x y : H), P y = 0 → ⟪P x, y⟫_𝕂 = 0
+
 
 -- RIESZ REPRESENTATION THEOREM
 
