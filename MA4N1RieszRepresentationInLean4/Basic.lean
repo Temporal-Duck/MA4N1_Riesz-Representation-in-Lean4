@@ -5,8 +5,8 @@ import Mathlib.Tactic
 
 -- To do:
 
--- Inner Product Spaces
--- IGNORE THESE FOR NOW
+-- INNER PRODUCT SPACES
+
 -- Define inner product
 -- Define inner product space
 -- Define natural norm of an inner product
@@ -19,6 +19,7 @@ variable {V : Type*} [SeminormedAddCommGroup V] [InnerProductSpace 𝕂 V] -- In
 example (x : V) : ⟪x, 0⟫_𝕂 = 0 := by exact inner_zero_right x
 example (x : V) : ⟪x, x⟫_𝕂 = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
 
+--NOTE: Alternate way of defining subspaces: https://leanprover-community.github.io/mathematics_in_lean/C10_Linear_Algebra.html#subspaces (- akira)
 def LinearSubspace {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
   [InnerProductSpace 𝕜 E] (U : Set E) : Prop :=
   ∀ (x y : E) (α β : 𝕜), x ∈ U → y ∈ U → α • x + β • y ∈ U
@@ -75,19 +76,25 @@ def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
   ∀ (x y : V) (_hx : x ∈ S) (_hy : y ∈ S) (t : ℝ) (_ht : 0 ≤ t ∧ t ≤ 1),
     (1 - t) • x + t • y ∈ S
 
--- Hilbert Spaces
+-- HILBERT SPACES
 
 
 -- Define Hilbert space (assuming Completeness from Mathlib)
 variable {H : Type*} [SeminormedAddCommGroup H] [InnerProductSpace 𝕂 H]
 variable [CompleteSpace H] -- Hilbert Space
+variable (U : Submodule 𝕂 H) -- U subspace of H
 
 -- Define Orthogonal complement of a set
 noncomputable def OrthogonalComplement (U : Set H) : Set H := {y : H | ∀ x ∈ U, ⟪x, y⟫_𝕂 = 0}
 notation U "⟂" => OrthogonalComplement U
 
--- Prop 5.18: Closest point on a convex set
--- Thm: For U closed linear subspace, H = U ⨁ U^⟂
+-- Prop 5.16: Closest point on a convex set
+theorem closest_point (A : Set H) (h1 : IsClosed A) (h2 : ConvexSet A) : -- (WILL FIX LATER - akira)
+  ∃! k : A, ∀ x : H, ‖x - k‖ = sInf {‖x - a‖ | a : A} := by sorry -- requires parallelogram law
+
+-- Thm 5.20: For U closed linear subspace, H = U ⨁ U^⟂ (requires Prop 5.16)
+theorem orthogonal_decompose (h : IsClosed U) :
+  ∀ x : H, ∃! (u : U), ∃! (v : U ⟂), x = u + v := by sorry -- (WILL FIX LATER - akira)
 
 def Projection (P : H →L[𝕂] H) : Prop :=
   ∀ x : H, P (P x) = P x
@@ -95,7 +102,8 @@ def Projection (P : H →L[𝕂] H) : Prop :=
 def OrthogonalProjection (P : H →L[𝕂] H) : Prop :=
   Projection P ∧ ∀ (x y : H), P y = 0 → ⟪P x, y⟫_𝕂 = 0
 
--- Riesz Representation Theorem
+-- RIESZ REPRESENTATION THEOREM
+
 -- Example 6.10 + Claim
 -- Thm: Riesz Representation Theorem
 
