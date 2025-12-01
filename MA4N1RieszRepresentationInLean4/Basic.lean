@@ -23,6 +23,10 @@ def ClosedLinearSubspace {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAdd
   [InnerProductSpace 𝕜 E] [TopologicalSpace E] (U : Set E) : Prop :=
   LinearSubspace (𝕜 := 𝕜) (U : Set E) ∧ IsClosed U
 
+
+-- Thm: Parallelogram law -> Has already been declared but we fix this if we want our own version
+
+
 -- Thm: Cauchy-Schwartz inequality
 theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖ := by
   -- Use the built-in Cauchy–Schwarz facts in mathlib.
