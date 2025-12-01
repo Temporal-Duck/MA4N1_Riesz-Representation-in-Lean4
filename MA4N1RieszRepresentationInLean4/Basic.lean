@@ -49,6 +49,12 @@ theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖
       _ = √(‖x‖ ^ 2) * √(‖y‖ ^ 2) := by rw [Real.sqrt_mul (sq_nonneg ‖x‖) (‖y‖ ^ 2)]
       _ = ‖x‖ * ‖y‖ := by simp
 
+-- Prop 4.7
+theorem parallelogram (x y : V) : ⟪x+y, x+y⟫_𝕂 + ⟪x-y, x-y⟫_𝕂 = 2*⟪x, x⟫_𝕂 + 2*⟪y, y⟫_𝕂 := by
+  rw [inner_add_right, inner_add_left, inner_add_left]
+  rw [inner_sub_right, inner_sub_left, inner_sub_left]
+  ring
+
 -- Define orthogonality (polymorphic over any inner-product space)
 def Orthogonal {E : Type*} [SeminormedAddCommGroup E] [InnerProductSpace 𝕂 E]
   (x y : E) : Prop := ⟪x, y⟫_𝕂 = 0
@@ -73,37 +79,39 @@ def OrthonormalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGr
 noncomputable def OperatorNorm (F : V →L[𝕂] 𝕂) : ℝ :=
   sSup (Set.image (fun x => ‖F x‖) { x : V | ‖x‖ ≤ 1 })
 
+
+-- HILBERT SPACES
+
+-- Define Hilbert space (assuming Completeness from Mathlib)
+variable {H : Type*} [SeminormedAddCommGroup H] [InnerProductSpace ℂ H]
+variable [CompleteSpace H] -- Hilbert Space
+variable (U : Submodule ℂ H) -- U subspace of H (NOTE : using ℂ instead of 𝕂 for now - akira)
+
+-- Define Orthogonal complement of a set
+noncomputable def OrthogonalComplement (A : Set H) : Set H := {y : H | ∀ x ∈ A, ⟪x, y⟫_ℂ = 0}
+notation A "⟂" => OrthogonalComplement A
+
+-- Defn 5.15
 def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
   ∀ (x y : V) (_hx : x ∈ S) (_hy : y ∈ S) (t : ℝ) (_ht : 0 ≤ t ∧ t ≤ 1),
     (1 - t) • x + t • y ∈ S
 -- NOTE: Might be better to use 𝕂 = ℂ since notes assume complex Hilbert spaces. It would also
 -- make ConvexSet easier to apply as we run into issues treating V as an ℝ-module - Akira
 
-
--- HILBERT SPACES
-
--- Define Hilbert space (assuming Completeness from Mathlib)
-variable {H : Type*} [SeminormedAddCommGroup H] [InnerProductSpace 𝕂 H]
-variable [CompleteSpace H] -- Hilbert Space
-variable (U : Submodule 𝕂 H) -- U subspace of H
-
--- Define Orthogonal complement of a set
-noncomputable def OrthogonalComplement (U : Set H) : Set H := {y : H | ∀ x ∈ U, ⟪x, y⟫_𝕂 = 0}
-notation U "⟂" => OrthogonalComplement U
-
 -- Prop 5.16: Closest point on a convex set
-theorem closest_point (A : Set H) (h1 : IsClosed A) (h2 : ConvexSet A) : -- (WILL FIX LATER - akira)
-  ∃! k : A, ∀ x : H, ‖x - k‖ = sInf {‖x - a‖ | a : A} := by sorry -- requires parallelogram law
+theorem closest_point (A : Set H) (h1 : IsClosed A) (h2 : ConvexSet A) :
+  ∃! k : A, ∀ x : H, ‖x - k‖ = sInf {‖x - a‖ | a : A} := by
+  sorry -- requires parallelogram (Prop 4.7)
 
 -- Thm 5.20: For U closed linear subspace, H = U ⨁ U^⟂ (requires Prop 5.16)
-theorem orthogonal_decompose (h : IsClosed U) :
-  ∀ x : H, ∃! (u : U), ∃! (v : U ⟂), x = u + v := by sorry -- (WILL FIX LATER - akira)
+theorem orthogonal_decompose (h : IsClosed U.carrier) :
+  ∀ x : H, ∃! (u : U), ∃! (v : U.carrier ⟂), x = u + v := by sorry -- (WILL FIX LATER - akira)
 
-def Projection (P : H →L[𝕂] H) : Prop :=
+def Projection (P : H →L[ℂ] H) : Prop :=
   ∀ x : H, P (P x) = P x
 
-def OrthogonalProjection (P : H →L[𝕂] H) : Prop :=
-  Projection P ∧ ∀ (x y : H), P y = 0 → ⟪P x, y⟫_𝕂 = 0
+def OrthogonalProjection (P : H →L[ℂ] H) : Prop :=
+  Projection P ∧ ∀ (x y : H), P y = 0 → ⟪P x, y⟫_ℂ = 0
 
 
 -- RIESZ REPRESENTATION THEOREM
@@ -111,8 +119,8 @@ def OrthogonalProjection (P : H →L[𝕂] H) : Prop :=
 -- Example 6.10 + Claim
 -- Thm: Riesz Representation Theorem
 
-theorem riesz_rep (G : H →L[𝕂] 𝕂) :
+theorem riesz_rep (G : H →L[ℂ] ℂ) :
   ∃! y : H,
-    (∀ x : H, G x = ⟪x , y⟫_𝕂) ∧
+    (∀ x : H, G x = ⟪x , y⟫_ℂ) ∧
     OperatorNorm G  = ‖y‖ := by
   sorry
