@@ -24,7 +24,10 @@ def ClosedLinearSubspace {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAdd
   LinearSubspace (𝕜 := 𝕜) (U : Set E) ∧ IsClosed U
 
 
--- Thm: Parallelogram law -> Has already been declared but we fix this if we want our own version
+-- Thm: Parallelogram law -> Has already been declared for norms but we might need a version for IPS
+theorem parallelogram_ips (x y : V) : ‖x+y‖ ^ 2 + ‖x-y‖ ^ 2 = 2 * (‖x‖ ^ 2 + ‖y‖ ^ 2) := by sorry
+
+
 
 
 -- Thm: Cauchy-Schwartz inequality
