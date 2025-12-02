@@ -14,14 +14,7 @@ variable {V : Type*} [SeminormedAddCommGroup V] [InnerProductSpace 𝕂 V] -- In
 example (x : V) : ⟪x, 0⟫_𝕂 = 0 := by exact inner_zero_right x
 example (x : V) : ⟪x, x⟫_𝕂 = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
 
---NOTE: Alternate way of defining subspaces: https://leanprover-community.github.io/mathematics_in_lean/C10_Linear_Algebra.html#subspaces (- akira)
-def LinearSubspace {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
-  [InnerProductSpace 𝕜 E] (U : Set E) : Prop :=
-  ∀ (x y : E) (α β : 𝕜), x ∈ U → y ∈ U → α • x + β • y ∈ U
 
-def ClosedLinearSubspace {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
-  [InnerProductSpace 𝕜 E] [TopologicalSpace E] (U : Set E) : Prop :=
-  LinearSubspace (𝕜 := 𝕜) (U : Set E) ∧ IsClosed U
 
 def BoundedLinearOperator {𝕜 : Type*} [NormedField 𝕜] {V U : Type*}
   [SeminormedAddCommGroup V] [Module 𝕜 V] [SeminormedAddCommGroup U] [Module 𝕜 U]
@@ -92,6 +85,9 @@ variable (U : Submodule ℂ H) -- U subspace of H (NOTE : using ℂ instead of �
 noncomputable def OrthogonalComplement (A : Set H) : Set H := {y : H | ∀ x ∈ A, ⟪x, y⟫_ℂ = 0}
 notation A "⟂" => OrthogonalComplement A
 
+
+
+
 -- Defn 5.15
 def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
   ∀ (x y : V) (_hx : x ∈ S) (_hy : y ∈ S) (t : ℝ) (_ht : 0 ≤ t ∧ t ≤ 1),
@@ -116,6 +112,9 @@ def OrthogonalProjection (P : H →L[ℂ] H) : Prop :=
 
 -- Defn: Continuous dual space of H
 def DualH := H →L[ℂ] ℂ
+
+-- Do we want to prove its a vector space?
+-- Do we need a separate defn for operator norm on DualH?
 
 -- RIESZ REPRESENTATION THEOREM
 
