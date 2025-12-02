@@ -26,17 +26,20 @@ def ClosedLinearSubspace {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAdd
 
 -- Thm: Cauchy-Schwartz inequality
 theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖ := by
-  -- Use the built-in Cauchy–Schwarz facts in mathlib.
+  -- We want to use the `inner_mul_inner_self_le` lemma
+  -- from Mathlib (as it already does most of the work):
   -- inner_mul_inner_self_le : ‖⟪x, y⟫‖ * ‖⟪y, x⟫‖ ≤ re ⟪x, x⟫ * re ⟪y, y⟫
-  -- call the lemma with explicit instances so Lean doesn't get stuck inferring them
+  -- using have to specify all the typeclass instances explicitly so don't have to do it later
   have h := @inner_mul_inner_self_le 𝕂 V ‹RCLike 𝕂› ‹SeminormedAddCommGroup V›
     ‹InnerProductSpace 𝕂 V› x y
+
+
   -- norms of inner products are symmetric, and re ⟪x,x⟫ = ‖x‖^2
-  -- Simplify the `inner_mul_inner_self_le` inequality into a squared-norm inequality
+  -- Rewrite the `inner_mul_inner_self_le` inequality using just norms
   have sq_ineq : ‖⟪x, y⟫_𝕂‖ ^ 2 ≤ ‖x‖ ^ 2 * ‖y‖ ^ 2 := by
     have h' := by simpa [norm_inner_symm] using h
     simpa [pow_two, ← norm_sq_eq_re_inner x, ← norm_sq_eq_re_inner y] using h'
-  -- Take square-roots (both sides are nonnegative) and simplify sqrt-of-square to obtain the result
+  -- Take square-roots and simplify sqrt-of-square to get the result
   calc
       ‖⟪x, y⟫_𝕂‖ = √(‖⟪x, y⟫_𝕂‖ ^ 2) := by simp [Real.sqrt_sq (norm_nonneg _)]
       _ ≤ √(‖x‖ ^ 2 * ‖y‖ ^ 2) := Real.sqrt_le_sqrt sq_ineq
