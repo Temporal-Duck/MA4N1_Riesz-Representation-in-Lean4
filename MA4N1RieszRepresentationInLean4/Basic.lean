@@ -9,6 +9,7 @@ import Mathlib.Topology.Basic
 
 open InnerProductSpace
 
+
 variable {𝕂 : Type*} [RCLike 𝕂] -- Field 𝕂 = ℝ or ℂ
 variable {V : Type*} [SeminormedAddCommGroup V] [InnerProductSpace 𝕂 V] -- Inner product space
 
@@ -115,9 +116,9 @@ def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
 -- make ConvexSet easier to apply as we run into issues treating V as an ℝ-module - Akira
 
 -- Prop 5.16: Closest point on a convex set
-theorem closest_point (A : Set H) (h1 : IsClosed A) (h2 : ConvexSet A) :
-  ∃! k : A, ∀ x : H, ‖x - k‖ = sInf {‖x - a‖ | a : A} := by
-    intro x
+theorem closest_point (A : Set H) (h0 : A.Nonempty)(h1 : IsClosed A) (h2 : ConvexSet A) :
+  ∀ x : H, ∃! k : A, ‖x - (k : H)‖ = sInf (Set.range fun a : A => ‖x - (a : H)‖) := by
+  intro x
   -- S = {‖x - a‖ | a ∈ A}
   let δ := sInf (Set.range fun a : A => ‖x - (a : H)‖)
 
@@ -125,19 +126,24 @@ theorem closest_point (A : Set H) (h1 : IsClosed A) (h2 : ConvexSet A) :
     sorry
 
   --build seq with ‖x - a_n‖^2 → del^2
-  have exists_seq : ∀ n : ℕ, ∃ a : A, ‖x - (a : H)‖^2 ≤ δ^2 + 1/(n+1) := by
+  have exist_seq : ∀ n : ℕ, ∃ a : A, ‖x - (a : H)‖^2 ≤ δ^2 + 1/(n+1) := by
     intro n
     sorry
 
-  --build a cauchy seq ()
-  have cauchy : CauchySeq (fun n => seq n : H) := by
+  --build seq and its spec
+  let seq := fun n => Classical.choose (exist_seq n)
+  let seq_spec := fun n => Classical.choose_spec (exist_seq n)
+  --#check seq
+  --#check seq_spec
+
+  --build a cauchy seq
+  have cauchy : CauchySeq (fun n => (seq n : H)) := by
+    intro ε ε_2
+  --show that for large enough m,n, ||an - am|| is small
     sorry
 
-
-  have unique : ∀ b : A, ‖x - (b : H)‖ = δ → b = ⟨a_lim, a_lim_mem⟩ := by
-    intro b hb
-    have : δ^2 ≤ ‖x - ((a_lim + (b : H)) / 2 : H)‖^2 := by
-      sorry
+  --call a_lim =
+  have norm_lim : ‖x - a_lim‖^2 = δ^2 := by
     sorry
 
 
