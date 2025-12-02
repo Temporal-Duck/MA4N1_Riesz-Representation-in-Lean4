@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+import Mathlib.Topology.Basic
 
 -- INNER PRODUCT SPACES
 
@@ -7,6 +8,7 @@ import Mathlib.Tactic
 -- Define natural norm of an inner product
 
 open InnerProductSpace
+
 
 variable {𝕂 : Type*} [RCLike 𝕂] -- Field 𝕂 = ℝ or ℂ
 variable {V : Type*} [SeminormedAddCommGroup V] [InnerProductSpace ℂ V] -- Inner product space
@@ -45,6 +47,13 @@ theorem parallelogram (x y : V) : ⟪x+y, x+y⟫_ℂ + ⟪x-y, x-y⟫_ℂ = 2*�
   rw [inner_add_right, inner_add_left, inner_add_left]
   rw [inner_sub_right, inner_sub_left, inner_sub_left]
   ring
+
+-- Prop 4.10
+theorem convergence_inner (xn yn : ℕ → V) (x y : V)
+  (hxn : ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖xn n - x‖ < ε)
+  (hyn : ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖yn n - y‖ < ε) :
+  ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖(⟪xn n, yn n⟫_𝕂 - ⟪x, y⟫_𝕂)‖ < ε := by sorry
+
 
 -- Define orthogonality (polymorphic over any inner-product space)
 def Orthogonal (x y : V) : Prop := ⟪x, y⟫_ℂ = 0
@@ -109,9 +118,9 @@ def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
 -- make ConvexSet easier to apply as we run into issues treating V as an ℝ-module - Akira
 
 -- Prop 5.16: Closest point on a convex set
-theorem closest_point (A : Set H) (h1 : IsClosed A) (h2 : ConvexSet A) :
-  ∃! k : A, ∀ x : H, ‖x - k‖ = sInf {‖x - a‖ | a : A} := by
-    intro x
+theorem closest_point (A : Set H) (h0 : A.Nonempty)(h1 : IsClosed A) (h2 : ConvexSet A) :
+  ∀ x : H, ∃! k : A, ‖x - (k : H)‖ = sInf (Set.range fun a : A => ‖x - (a : H)‖) := by
+  intro x
   -- S = {‖x - a‖ | a ∈ A}
   let δ := sInf (Set.range fun a : A => ‖x - (a : H)‖)
 
@@ -119,19 +128,24 @@ theorem closest_point (A : Set H) (h1 : IsClosed A) (h2 : ConvexSet A) :
     sorry
 
   --build seq with ‖x - a_n‖^2 → del^2
-  have exists_seq : ∀ n : ℕ, ∃ a : A, ‖x - (a : H)‖^2 ≤ δ^2 + 1/(n+1) := by
+  have exist_seq : ∀ n : ℕ, ∃ a : A, ‖x - (a : H)‖^2 ≤ δ^2 + 1/(n+1) := by
     intro n
     sorry
 
-  --build a cauchy seq ()
-  have cauchy : CauchySeq (fun n => seq n : H) := by
+  --build seq and its spec
+  let seq := fun n => Classical.choose (exist_seq n)
+  let seq_spec := fun n => Classical.choose_spec (exist_seq n)
+  --#check seq
+  --#check seq_spec
+
+  --build a cauchy seq
+  have cauchy : CauchySeq (fun n => (seq n : H)) := by
+    intro ε ε_2
+  --show that for large enough m,n, ||an - am|| is small
     sorry
 
-
-  have unique : ∀ b : A, ‖x - (b : H)‖ = δ → b = ⟨a_lim, a_lim_mem⟩ := by
-    intro b hb
-    have : δ^2 ≤ ‖x - ((a_lim + (b : H)) / 2 : H)‖^2 := by
-      sorry
+  --call a_lim =
+  have norm_lim : ‖x - a_lim‖^2 = δ^2 := by
     sorry
 
 
