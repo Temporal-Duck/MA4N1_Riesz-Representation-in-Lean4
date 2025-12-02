@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+import Mathlib.Topology.Basic
 
 -- INNER PRODUCT SPACES
 
@@ -48,6 +49,13 @@ theorem parallelogram (x y : V) : ⟪x+y, x+y⟫_𝕂 + ⟪x-y, x-y⟫_𝕂 = 2*
   rw [inner_add_right, inner_add_left, inner_add_left]
   rw [inner_sub_right, inner_sub_left, inner_sub_left]
   ring
+
+-- Prop 4.10
+theorem convergence_inner (xn yn : ℕ → V) (x y : V)
+  (hxn : ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖xn n - x‖ < ε)
+  (hyn : ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖yn n - y‖ < ε) :
+  ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖(⟪xn n, yn n⟫_𝕂 - ⟪x, y⟫_𝕂)‖ < ε := by sorry
+
 
 -- Define orthogonality (polymorphic over any inner-product space)
 def Orthogonal {E : Type*} [SeminormedAddCommGroup E] [InnerProductSpace 𝕂 E]
