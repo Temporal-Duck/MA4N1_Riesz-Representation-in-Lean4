@@ -52,7 +52,7 @@ theorem parallelogram (x y : V) : ⟪x+y, x+y⟫_ℂ + ⟪x-y, x-y⟫_ℂ = 2*�
 theorem convergence_inner (xn yn : ℕ → V) (x y : V)
   (hxn : ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖xn n - x‖ < ε)
   (hyn : ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖yn n - y‖ < ε) :
-  ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖(⟪xn n, yn n⟫_𝕂 - ⟪x, y⟫_𝕂)‖ < ε := by sorry
+  ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖(⟪xn n, yn n⟫_ℂ - ⟪x, y⟫_ℂ)‖ < ε := by sorry
 
 
 -- Define orthogonality (polymorphic over any inner-product space)
