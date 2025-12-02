@@ -9,12 +9,10 @@ import Mathlib.Tactic
 open InnerProductSpace
 
 variable {𝕂 : Type*} [RCLike 𝕂] -- Field 𝕂 = ℝ or ℂ
-variable {V : Type*} [SeminormedAddCommGroup V] [InnerProductSpace 𝕂 V] -- Inner product space
+variable {V : Type*} [SeminormedAddCommGroup V] [InnerProductSpace ℂ V] -- Inner product space
 
-example (x : V) : ⟪x, 0⟫_𝕂 = 0 := by exact inner_zero_right x
-example (x : V) : ⟪x, x⟫_𝕂 = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
-
-
+example (x : V) : ⟪x, 0⟫_ℂ = 0 := by exact inner_zero_right x
+example (x : V) : ⟪x, x⟫_ℂ = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
 
 def BoundedLinearOperator {𝕜 : Type*} [NormedField 𝕜] {V U : Type*}
   [SeminormedAddCommGroup V] [Module 𝕜 V] [SeminormedAddCommGroup U] [Module 𝕜 U]
@@ -22,7 +20,7 @@ def BoundedLinearOperator {𝕜 : Type*} [NormedField 𝕜] {V U : Type*}
   ∃ (M : ℝ), 0 ≤ M ∧ ∀ x : V, ‖A x‖ ≤ M * ‖x‖
 
 -- Thm: Cauchy-Schwartz inequality
-theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖ := by
+theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_ℂ‖ ≤ ‖x‖ * ‖y‖ := by
   -- We want to use the `inner_mul_inner_self_le` lemma
   -- from Mathlib (as it already does most of the work):
   -- inner_mul_inner_self_le : ‖⟪x, y⟫‖ * ‖⟪y, x⟫‖ ≤ re ⟪x, x⟫ * re ⟪y, y⟫
@@ -30,35 +28,32 @@ theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖
   have h := @inner_mul_inner_self_le 𝕂 V ‹RCLike 𝕂› ‹SeminormedAddCommGroup V›
     ‹InnerProductSpace 𝕂 V› x y
 
-
   -- norms of inner products are symmetric, and re ⟪x,x⟫ = ‖x‖^2
   -- Rewrite the `inner_mul_inner_self_le` inequality using just norms
-  have sq_ineq : ‖⟪x, y⟫_𝕂‖ ^ 2 ≤ ‖x‖ ^ 2 * ‖y‖ ^ 2 := by
+  have sq_ineq : ‖⟪x, y⟫_ℂ‖ ^ 2 ≤ ‖x‖ ^ 2 * ‖y‖ ^ 2 := by
     have h' := by simpa [norm_inner_symm] using h
     simpa [pow_two, ← norm_sq_eq_re_inner x, ← norm_sq_eq_re_inner y] using h'
   -- Take square-roots and simplify sqrt-of-square to get the result
   calc
-      ‖⟪x, y⟫_𝕂‖ = √(‖⟪x, y⟫_𝕂‖ ^ 2) := by simp [Real.sqrt_sq (norm_nonneg _)]
+      ‖⟪x, y⟫_ℂ‖ = √(‖⟪x, y⟫_ℂ‖ ^ 2) := by simp [Real.sqrt_sq (norm_nonneg _)]
       _ ≤ √(‖x‖ ^ 2 * ‖y‖ ^ 2) := Real.sqrt_le_sqrt sq_ineq
       _ = √(‖x‖ ^ 2) * √(‖y‖ ^ 2) := by rw [Real.sqrt_mul (sq_nonneg ‖x‖) (‖y‖ ^ 2)]
       _ = ‖x‖ * ‖y‖ := by simp
 
 -- Prop 4.7
-theorem parallelogram (x y : V) : ⟪x+y, x+y⟫_𝕂 + ⟪x-y, x-y⟫_𝕂 = 2*⟪x, x⟫_𝕂 + 2*⟪y, y⟫_𝕂 := by
+theorem parallelogram (x y : V) : ⟪x+y, x+y⟫_ℂ + ⟪x-y, x-y⟫_ℂ = 2*⟪x, x⟫_ℂ + 2*⟪y, y⟫_ℂ := by
   rw [inner_add_right, inner_add_left, inner_add_left]
   rw [inner_sub_right, inner_sub_left, inner_sub_left]
   ring
 
 -- Define orthogonality (polymorphic over any inner-product space)
-def Orthogonal {E : Type*} [SeminormedAddCommGroup E] [InnerProductSpace 𝕂 E]
-  (x y : E) : Prop := ⟪x, y⟫_𝕂 = 0
+def Orthogonal (x y : V) : Prop := ⟪x, y⟫_ℂ = 0
 notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogonal x y
 -- Orthonormal had already been declared (might want to do it ourselves)
 
 -- Defn: Orthogonal set (maybe use this to update Orthonormal set later?)
 def OrthogonalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
   [InnerProductSpace 𝕜 E] (S : Set E) : Prop := ∀ x ∈ S, ∀ y ∈ S, x ≠ y → ⟪x,y⟫_𝕜 = 0
-
 
 -- Defn: Orthonormal set - using OrthogonalSet
 def OrthonormalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
@@ -68,21 +63,28 @@ def OrthonormalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGr
 -- LinearIndependent had already been declared (might want to do it ourselves)
 
 
-
 -- Defn: operator norm for inner product spaces -> using defn in 6.1
-noncomputable def OperatorNorm (F : V →L[𝕂] 𝕂) : ℝ :=
+noncomputable def OperatorNorm (F : V →L[ℂ] ℂ) : ℝ :=
   sSup (Set.image (fun x => ‖F x‖) { x : V | ‖x‖ ≤ 1 })
 
 notation "‖" T "‖_op" => OperatorNorm T
 
 --Useful lemma for proofs
-lemma operator_bound (x : V) (T : V →L[𝕂] 𝕂) : ‖T x‖ ≤  ‖T‖_op * ‖x‖ := by
+lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op * ‖x‖ := by
   by_cases null : x = 0
   · rw [null, ContinuousLinearMap.map_zero T, norm_zero, norm_zero]
     simp
-  · -- WIP
-    sorry
+  ·
+    let y := 1 / (RCLike.ofReal ‖x‖)
+    calc
+      ‖T x‖ = ‖T (‖x‖*y*x)‖ := by sorry
+      _ = ‖T (y*x)‖ * ‖x‖ := by sorry
+      _ ≤ ‖T‖_op * ‖x‖ := by sorry
+
 example (x : V) (h : ¬(x = 0)) : x ≠ 0 := by exact h
+example (x : V) (h : ¬(x = 0)) : ‖x‖ ≠ 0 := by sorry
+variable (x : V)
+#check (RCLike.ofReal ‖x‖ : 𝕂)
 
 
 -- HILBERT SPACES
