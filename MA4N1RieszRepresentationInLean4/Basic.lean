@@ -138,12 +138,28 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty)(h1 : IsClosed A) (h2 : Conve
 
   --build a cauchy seq
   have cauchy : CauchySeq (fun n => (seq n : H)) := by
-    intro ε ε_2
-  --show that for large enough m,n, ||an - am|| is small
     sorry
 
-  --call a_lim =
-  have norm_lim : ‖x - a_lim‖^2 = δ^2 := by
+  --A is closed so we can find a_lim in A
+  obtain ⟨a_lim, tendsto⟩ := cauchySeq_tendsto_of_complete cauchy
+  have a_lim_2 : (a_lim : H) ∈ A := by
+    -- A closed + seq in A -> limit in A
+    sorry
+
+  -- ||x - a_lim||^2 = del^2
+  have norm_limit : ‖x - a_lim‖^2 = δ^2 := by
+    -- continuity of norm, limit of seq_spec gives equality
+    --Use prop 4.10
+    sorry
+
+  -- uniqueness
+  have unique : ∀ b : A, ‖x - (b : H)‖ = δ → b = ⟨a_lim, a_lim_2⟩ := by
+    intro b hb
+    -- get ‖a_lim - b‖ = 0
+    --have : δ^2 ≤ ‖x - ((1/2 : ℝ) • (a_lim + (b : H)) : H)‖^2 := by
+      sorry
+    -- Need to get ‖a_lim - b‖^2 = 0
+
     sorry
 
 
