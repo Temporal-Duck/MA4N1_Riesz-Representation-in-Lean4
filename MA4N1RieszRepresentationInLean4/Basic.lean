@@ -156,10 +156,11 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty)(h1 : IsClosed A) (h2 : Conve
     intro b hb
     -- get ‖a_lim - b‖ = 0
     --have : δ^2 ≤ ‖x - ((1/2 : ℝ) • (a_lim + (b : H)) : H)‖^2 := by
-      sorry
+      --sorry
     -- Need to get ‖a_lim - b‖^2 = 0
-
     sorry
+
+  sorry
 
 
 
