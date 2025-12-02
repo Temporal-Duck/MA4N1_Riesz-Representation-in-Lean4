@@ -109,7 +109,33 @@ def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
 -- Prop 5.16: Closest point on a convex set
 theorem closest_point (A : Set H) (h1 : IsClosed A) (h2 : ConvexSet A) :
   ∃! k : A, ∀ x : H, ‖x - k‖ = sInf {‖x - a‖ | a : A} := by
-  sorry -- requires parallelogram (Prop 4.7)
+    intro x
+  -- S = {‖x - a‖ | a ∈ A}
+  let δ := sInf (Set.range fun a : A => ‖x - (a : H)‖)
+
+  have δ_nonneg : 0 ≤ δ := by
+    sorry
+
+  --build seq with ‖x - a_n‖^2 → del^2
+  have exists_seq : ∀ n : ℕ, ∃ a : A, ‖x - (a : H)‖^2 ≤ δ^2 + 1/(n+1) := by
+    intro n
+    sorry
+
+  --build a cauchy seq ()
+  have cauchy : CauchySeq (fun n => seq n : H) := by
+    sorry
+
+
+  have unique : ∀ b : A, ‖x - (b : H)‖ = δ → b = ⟨a_lim, a_lim_mem⟩ := by
+    intro b hb
+    have : δ^2 ≤ ‖x - ((a_lim + (b : H)) / 2 : H)‖^2 := by
+      sorry
+    sorry
+
+
+
+
+  -- requires parallelogram (Prop 4.7)
 
 -- Thm 5.20: For U closed linear subspace, H = U ⨁ U^⟂ (requires Prop 5.16)
 theorem orthogonal_decompose (h : IsClosed U.carrier) :
