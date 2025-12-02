@@ -10,7 +10,7 @@ import Mathlib.Topology.Basic
 open InnerProductSpace
 
 
-variable {𝕂 : Type*} [RCLike 𝕂] -- Field 𝕂 = ℝ or ℂ
+--variable {𝕂 : Type*} [RCLike 𝕂] -- Field 𝕂 = ℝ or ℂ
 variable {V : Type*} [SeminormedAddCommGroup V] [InnerProductSpace ℂ V] -- Inner product space
 
 example (x : V) : ⟪x, 0⟫_ℂ = 0 := by exact inner_zero_right x
@@ -27,8 +27,7 @@ theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_ℂ‖ ≤ ‖x‖ * ‖y‖ 
   -- from Mathlib (as it already does most of the work):
   -- inner_mul_inner_self_le : ‖⟪x, y⟫‖ * ‖⟪y, x⟫‖ ≤ re ⟪x, x⟫ * re ⟪y, y⟫
   -- using have to specify all the typeclass instances explicitly so don't have to do it later
-  have h := @inner_mul_inner_self_le 𝕂 V ‹RCLike 𝕂› ‹SeminormedAddCommGroup V›
-    ‹InnerProductSpace 𝕂 V› x y
+  have h  := @inner_mul_inner_self_le ℂ _ _ _ _ x y
 
   -- norms of inner products are symmetric, and re ⟪x,x⟫ = ‖x‖^2
   -- Rewrite the `inner_mul_inner_self_le` inequality using just norms
@@ -93,7 +92,6 @@ lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op *
 example (x : V) (h : ¬(x = 0)) : x ≠ 0 := by exact h
 example (x : V) (h : ¬(x = 0)) : ‖x‖ ≠ 0 := by sorry
 variable (x : V)
-#check (RCLike.ofReal ‖x‖ : 𝕂)
 
 
 -- HILBERT SPACES
