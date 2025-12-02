@@ -1,5 +1,4 @@
 import Mathlib.Tactic
-import Mathlib.Topology.Basic
 
 -- INNER PRODUCT SPACES
 
