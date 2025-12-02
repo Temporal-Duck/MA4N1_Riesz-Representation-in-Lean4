@@ -14,32 +14,29 @@ variable {V : Type*} [SeminormedAddCommGroup V] [InnerProductSpace 𝕂 V] -- In
 example (x : V) : ⟪x, 0⟫_𝕂 = 0 := by exact inner_zero_right x
 example (x : V) : ⟪x, x⟫_𝕂 = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
 
---NOTE: Alternate way of defining subspaces: https://leanprover-community.github.io/mathematics_in_lean/C10_Linear_Algebra.html#subspaces (- akira)
-def LinearSubspace {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
-  [InnerProductSpace 𝕜 E] (U : Set E) : Prop :=
-  ∀ (x y : E) (α β : 𝕜), x ∈ U → y ∈ U → α • x + β • y ∈ U
-
-def ClosedLinearSubspace {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
-  [InnerProductSpace 𝕜 E] [TopologicalSpace E] (U : Set E) : Prop :=
-  LinearSubspace (𝕜 := 𝕜) (U : Set E) ∧ IsClosed U
 
 
--- Thm: Parallelogram law -> Has already been declared but we fix this if we want our own version
-
+def BoundedLinearOperator {𝕜 : Type*} [NormedField 𝕜] {V U : Type*}
+  [SeminormedAddCommGroup V] [Module 𝕜 V] [SeminormedAddCommGroup U] [Module 𝕜 U]
+  (A : V →ₗ[𝕜] U) : Prop :=
+  ∃ (M : ℝ), 0 ≤ M ∧ ∀ x : V, ‖A x‖ ≤ M * ‖x‖
 
 -- Thm: Cauchy-Schwartz inequality
 theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖ := by
-  -- Use the built-in Cauchy–Schwarz facts in mathlib.
+  -- We want to use the `inner_mul_inner_self_le` lemma
+  -- from Mathlib (as it already does most of the work):
   -- inner_mul_inner_self_le : ‖⟪x, y⟫‖ * ‖⟪y, x⟫‖ ≤ re ⟪x, x⟫ * re ⟪y, y⟫
-  -- call the lemma with explicit instances so Lean doesn't get stuck inferring them
+  -- using have to specify all the typeclass instances explicitly so don't have to do it later
   have h := @inner_mul_inner_self_le 𝕂 V ‹RCLike 𝕂› ‹SeminormedAddCommGroup V›
     ‹InnerProductSpace 𝕂 V› x y
+
+
   -- norms of inner products are symmetric, and re ⟪x,x⟫ = ‖x‖^2
-  -- Simplify the `inner_mul_inner_self_le` inequality into a squared-norm inequality
+  -- Rewrite the `inner_mul_inner_self_le` inequality using just norms
   have sq_ineq : ‖⟪x, y⟫_𝕂‖ ^ 2 ≤ ‖x‖ ^ 2 * ‖y‖ ^ 2 := by
     have h' := by simpa [norm_inner_symm] using h
     simpa [pow_two, ← norm_sq_eq_re_inner x, ← norm_sq_eq_re_inner y] using h'
-  -- Take square-roots (both sides are nonnegative) and simplify sqrt-of-square to obtain the result
+  -- Take square-roots and simplify sqrt-of-square to get the result
   calc
       ‖⟪x, y⟫_𝕂‖ = √(‖⟪x, y⟫_𝕂‖ ^ 2) := by simp [Real.sqrt_sq (norm_nonneg _)]
       _ ≤ √(‖x‖ ^ 2 * ‖y‖ ^ 2) := Real.sqrt_le_sqrt sq_ineq
@@ -99,6 +96,9 @@ variable (U : Submodule ℂ H) -- U subspace of H (NOTE : using ℂ instead of �
 noncomputable def OrthogonalComplement (A : Set H) : Set H := {y : H | ∀ x ∈ A, ⟪x, y⟫_ℂ = 0}
 notation A "⟂" => OrthogonalComplement A
 
+
+
+
 -- Defn 5.15
 def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
   ∀ (x y : V) (_hx : x ∈ S) (_hy : y ∈ S) (t : ℝ) (_ht : 0 ≤ t ∧ t ≤ 1),
@@ -121,6 +121,11 @@ def Projection (P : H →L[ℂ] H) : Prop :=
 def OrthogonalProjection (P : H →L[ℂ] H) : Prop :=
   Projection P ∧ ∀ (x y : H), P y = 0 → ⟪P x, y⟫_ℂ = 0
 
+-- Defn: Continuous dual space of H
+def DualH := H →L[ℂ] ℂ
+
+-- Do we want to prove its a vector space?
+-- Do we need a separate defn for operator norm on DualH?
 
 -- RIESZ REPRESENTATION THEOREM
 
