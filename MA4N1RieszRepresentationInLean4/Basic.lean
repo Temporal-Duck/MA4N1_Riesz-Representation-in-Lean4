@@ -23,6 +23,10 @@ def ClosedLinearSubspace {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAdd
   [InnerProductSpace 𝕜 E] [TopologicalSpace E] (U : Set E) : Prop :=
   LinearSubspace (𝕜 := 𝕜) (U : Set E) ∧ IsClosed U
 
+def BoundedLinearOperator {𝕜 : Type*} [NormedField 𝕜] {V U : Type*}
+  [SeminormedAddCommGroup V] [Module 𝕜 V] [SeminormedAddCommGroup U] [Module 𝕜 U]
+  (A : V →ₗ[𝕜] U) : Prop :=
+  ∃ (M : ℝ), 0 ≤ M ∧ ∀ x : V, ‖A x‖ ≤ M * ‖x‖
 
 -- Thm: Cauchy-Schwartz inequality
 theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_𝕂‖ ≤ ‖x‖ * ‖y‖ := by
