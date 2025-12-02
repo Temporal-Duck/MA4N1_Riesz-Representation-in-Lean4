@@ -76,6 +76,17 @@ def OrthonormalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGr
 noncomputable def OperatorNorm (F : V →L[𝕂] 𝕂) : ℝ :=
   sSup (Set.image (fun x => ‖F x‖) { x : V | ‖x‖ ≤ 1 })
 
+notation "‖" T "‖_op" => OperatorNorm T
+
+--Useful lemma for proofs
+lemma operator_bound (x : V) (T : V →L[𝕂] 𝕂) : ‖T x‖ ≤  ‖T‖_op * ‖x‖ := by
+  by_cases null : x = 0
+  · rw [null, ContinuousLinearMap.map_zero T, norm_zero, norm_zero]
+    simp
+  · -- WIP
+    sorry
+example (x : V) (h : ¬(x = 0)) : x ≠ 0 := by exact h
+
 
 -- HILBERT SPACES
 
