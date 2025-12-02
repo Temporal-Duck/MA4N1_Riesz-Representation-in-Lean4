@@ -110,6 +110,10 @@ def Projection (P : H →L[ℂ] H) : Prop :=
 def OrthogonalProjection (P : H →L[ℂ] H) : Prop :=
   Projection P ∧ ∀ (x y : H), P y = 0 → ⟪P x, y⟫_ℂ = 0
 
+-- Only way this works is using this universe u, will this effect anything else? - (theo)
+universe u
+def DualSpace (E : Type u) : Type u :=
+  E → ℂ
 
 -- RIESZ REPRESENTATION THEOREM
 
