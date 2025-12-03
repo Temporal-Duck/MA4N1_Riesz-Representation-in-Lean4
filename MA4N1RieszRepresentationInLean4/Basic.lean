@@ -76,7 +76,7 @@ noncomputable def OperatorNorm (F : V →L[ℂ] ℂ) : ℝ :=
 
 notation "‖" T "‖_op" => OperatorNorm T
 
---Useful lemma for proofs
+--lem : ‖T‖_op as a bound for T
 lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op * ‖x‖ := by
   by_cases h : x = 0
   · rw [h, ContinuousLinearMap.map_zero T, norm_zero, norm_zero]
@@ -84,18 +84,27 @@ lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op *
   · have : x ≠ 0 := by exact h
     have hneq : ‖x‖ ≠ 0 := by sorry
     have one : ‖x‖/‖x‖ = 1 := by exact (div_eq_one_iff_eq hneq).mpr rfl
+    have hle1 : ‖(1/‖x‖)•x‖ ≤ 1 := by sorry
     calc
-      ‖T x‖ = ‖T ((‖x‖/‖x‖)•x)‖ := by sorry
-      _ = ‖T ((1/‖x‖)•x)‖ * ‖x‖ := by sorry
-      _ ≤ ‖T‖_op * ‖x‖ := by sorry
+      ‖T x‖ = ‖T ((‖x‖/‖x‖)•x)‖ := by rw [one, one_smul]
+      _ = ‖T ((‖x‖*(1/‖x‖))•x)‖ := by rw [div_eq_mul_one_div]
+      _ = ‖T (‖x‖•(1/‖x‖)•x)‖ := by rw [mul_smul ‖x‖ (1/‖x‖) x]
+      _ = ‖T ((1/‖x‖)•x)‖ * ‖x‖ := by
+        rw [ContinuousLinearMap.map_smul_of_tower, norm_smul, norm_norm, mul_comm]
+      _ ≤ ‖T‖_op * ‖x‖ := by
+        have hT : ‖T ((1/‖x‖)•x)‖ ∈ (fun x => ‖T x‖) '' { x : V | ‖x‖ ≤ 1 } := by
+          exact Set.mem_image_of_mem (fun x ↦ ‖T x‖) hle1
+        unfold OperatorNorm
+        rw [Real.sSup_def]
+        -- WIP
+        sorry
 
-example (x : V) (h : ¬(x = 0)) : x ≠ 0 := by exact h
-example (x : V) (h : ¬(x = 0)) : ‖x‖ ≠ 0 := by sorry
-variable (a : ℝ) (x : V)
-example (h : a ≠ 0) : a/a = 1 := by exact (div_eq_one_iff_eq h).mpr rfl
-#check div_eq_one_iff_eq
+variable (a b c : ℝ) (x : V) (T : V →L[ℂ] ℂ)
+#check mul_le_mul (Std.IsPreorder.le_refl ‖x‖)
 example (h : x = 0) : ‖x‖ = 0 := by exact inseparable_zero_iff_norm.mp (congrArg nhds h)
 example (p q : Prop) : (p ↔ q) ↔ (¬p ↔ ¬q) := by exact Iff.symm not_iff_not
+#check Real.isLUB_sSup
+#check IsLUB
 
 -- HILBERT SPACES
 
