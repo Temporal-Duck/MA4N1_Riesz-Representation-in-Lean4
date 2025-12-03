@@ -78,20 +78,24 @@ notation "‖" T "‖_op" => OperatorNorm T
 
 --Useful lemma for proofs
 lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op * ‖x‖ := by
-  by_cases null : x = 0
-  · rw [null, ContinuousLinearMap.map_zero T, norm_zero, norm_zero]
+  by_cases h : x = 0
+  · rw [h, ContinuousLinearMap.map_zero T, norm_zero, norm_zero]
     simp
-  ·
-    let y := 1 / (RCLike.ofReal ‖x‖)
+  · have : x ≠ 0 := by exact h
+    have hneq : ‖x‖ ≠ 0 := by sorry
+    have one : ‖x‖/‖x‖ = 1 := by exact (div_eq_one_iff_eq hneq).mpr rfl
     calc
-      ‖T x‖ = ‖T (‖x‖*y*x)‖ := by sorry
-      _ = ‖T (y*x)‖ * ‖x‖ := by sorry
+      ‖T x‖ = ‖T ((‖x‖/‖x‖)•x)‖ := by sorry
+      _ = ‖T ((1/‖x‖)•x)‖ * ‖x‖ := by sorry
       _ ≤ ‖T‖_op * ‖x‖ := by sorry
 
 example (x : V) (h : ¬(x = 0)) : x ≠ 0 := by exact h
 example (x : V) (h : ¬(x = 0)) : ‖x‖ ≠ 0 := by sorry
-variable (x : V)
-
+variable (a : ℝ) (x : V)
+example (h : a ≠ 0) : a/a = 1 := by exact (div_eq_one_iff_eq h).mpr rfl
+#check div_eq_one_iff_eq
+example (h : x = 0) : ‖x‖ = 0 := by exact inseparable_zero_iff_norm.mp (congrArg nhds h)
+example (p q : Prop) : (p ↔ q) ↔ (¬p ↔ ¬q) := by exact Iff.symm not_iff_not
 
 -- HILBERT SPACES
 
@@ -160,7 +164,7 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty)(h1 : IsClosed A) (h2 : Conve
     -- Need to get ‖a_lim - b‖^2 = 0
     sorry
 
-  sorry
+    sorry
 
 
 
