@@ -46,6 +46,11 @@ theorem parallelogram (x y : V) : ⟪x+y, x+y⟫_ℂ + ⟪x-y, x-y⟫_ℂ = 2*�
   rw [inner_sub_right, inner_sub_left, inner_sub_left]
   ring
 
+-- Parallelogram law with induced norms in V
+theorem parallelogram_norm (x y : V) : ‖x+y‖^2 + ‖x-y‖^2 = 2*‖x‖^2 + 2*‖y‖^2 := by
+  rw [←inner_self_eq_norm_sq_to_K]
+  sorry
+
 -- Prop 4.10
 theorem convergence_inner (xn yn : ℕ → V) (x y : V)
   (hxn : ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖xn n - x‖ < ε)
