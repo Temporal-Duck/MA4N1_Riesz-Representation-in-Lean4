@@ -10,7 +10,7 @@ open InnerProductSpace
 
 
 --variable {𝕂 : Type*} [RCLike 𝕂] -- Field 𝕂 = ℝ or ℂ
-variable {V : Type*} [SeminormedAddCommGroup V] [InnerProductSpace ℂ V] -- Inner product space
+variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℂ V] -- Inner product space
 
 example (x : V) : ⟪x, 0⟫_ℂ = 0 := by exact inner_zero_right x
 example (x : V) : ⟪x, x⟫_ℂ = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
@@ -81,12 +81,18 @@ lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op *
   by_cases h : x = 0
   · rw [h, ContinuousLinearMap.map_zero T, norm_zero, norm_zero]
     simp
-  · have : x ≠ 0 := by exact h
-    have hneq : ‖x‖ ≠ 0 := by sorry
-    have one : ‖x‖/‖x‖ = 1 := by exact (div_eq_one_iff_eq hneq).mpr rfl
-    have hle1 : ‖(1/‖x‖)•x‖ ≤ 1 := by sorry
+  · have hneq : ‖x‖ ≠ 0 := by
+      apply (not_congr (@norm_eq_zero V _ x)).mpr
+      exact h
+    have h1 : ‖x‖/‖x‖ = 1 := by exact (div_eq_one_iff_eq hneq).mpr rfl
+    have hle1 : ‖(1/‖x‖)•x‖ ≤ 1 := by
+      calc
+      ‖(1/‖x‖)•x‖ = ‖x‖/‖x‖ := by
+        rw [norm_smul, Real.norm_of_nonneg (one_div_nonneg.mpr (norm_nonneg x))]
+        exact one_div_mul_eq_div ‖x‖ ‖x‖
+      _ ≤ 1 := by exact div_self_le_one ‖x‖
     calc
-      ‖T x‖ = ‖T ((‖x‖/‖x‖)•x)‖ := by rw [one, one_smul]
+      ‖T x‖ = ‖T ((‖x‖/‖x‖)•x)‖ := by rw [h1, one_smul]
       _ = ‖T ((‖x‖*(1/‖x‖))•x)‖ := by rw [div_eq_mul_one_div]
       _ = ‖T (‖x‖•(1/‖x‖)•x)‖ := by rw [mul_smul ‖x‖ (1/‖x‖) x]
       _ = ‖T ((1/‖x‖)•x)‖ * ‖x‖ := by
@@ -99,7 +105,7 @@ lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op *
         -- WIP
         sorry
 
-variable (a b c : ℝ) (x : V) (T : V →L[ℂ] ℂ)
+variable (a b c : ℝ) (x : V) (T : V →L[ℂ] ℂ) (p q : Prop)
 #check mul_le_mul (Std.IsPreorder.le_refl ‖x‖)
 example (h : x = 0) : ‖x‖ = 0 := by exact inseparable_zero_iff_norm.mp (congrArg nhds h)
 example (p q : Prop) : (p ↔ q) ↔ (¬p ↔ ¬q) := by exact Iff.symm not_iff_not
@@ -109,7 +115,7 @@ example (p q : Prop) : (p ↔ q) ↔ (¬p ↔ ¬q) := by exact Iff.symm not_iff_
 -- HILBERT SPACES
 
 -- Define Hilbert space (assuming Completeness from Mathlib)
-variable {H : Type*} [SeminormedAddCommGroup H] [InnerProductSpace ℂ H]
+variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 variable [CompleteSpace H] -- Hilbert Space
 variable (U : Submodule ℂ H) -- U subspace of H (NOTE : using ℂ instead of 𝕂 for now - akira)
 
