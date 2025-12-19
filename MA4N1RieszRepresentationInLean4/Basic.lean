@@ -218,12 +218,9 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
   dsimp
   constructor
   · let v := x - u
-    have : v ∈ U.carrier ⟂ := by sorry
+    have : v ∈ U ⟂ := by sorry
     sorry
   · sorry
-
-variable (x y : U.carrier) (a b : ℂ)
-example : 2•x ∈ U := by sorry
 
 def Projection (P : H →L[ℂ] H) : Prop :=
   ∀ x : H, P (P x) = P x
