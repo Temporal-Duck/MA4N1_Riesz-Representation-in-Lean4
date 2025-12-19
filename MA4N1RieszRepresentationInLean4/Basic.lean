@@ -121,10 +121,6 @@ lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op *
         -- WIP
         sorry
 
-variable (a b c : ℝ) (x : V) (T : V →L[ℂ] ℂ) (p q : Prop)
-#check mul_le_mul (Std.IsPreorder.le_refl ‖x‖)
-example (h : x = 0) : ‖x‖ = 0 := by exact inseparable_zero_iff_norm.mp (congrArg nhds h)
-example (p q : Prop) : (p ↔ q) ↔ (¬p ↔ ¬q) := by exact Iff.symm not_iff_not
 #check Real.isLUB_sSup
 #check IsLUB
 
@@ -150,7 +146,7 @@ def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
 -- make ConvexSet easier to apply as we run into issues treating V as an ℝ-module - Akira
 
 -- Prop 5.16: Closest point on a convex set
-theorem closest_point (A : Set H) (h0 : A.Nonempty)(h1 : IsClosed A) (h2 : ConvexSet A) :
+theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : ConvexSet A) :
   ∀ x : H, ∃! k : A, ‖x - (k : H)‖ = sInf (Set.range fun a : A => ‖x - (a : H)‖) := by
   intro x
   -- S = {‖x - a‖ | a ∈ A}
@@ -200,11 +196,34 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty)(h1 : IsClosed A) (h2 : Conve
 
 
 
-  -- requires parallelogram (Prop 4.7)
+  -- requires parallelogram (Prop 4.7
 
 -- Thm 5.20: For U closed linear subspace, H = U ⨁ U^⟂ (requires Prop 5.16)
 theorem orthogonal_decompose (h : IsClosed U.carrier) :
-  ∀ x : H, ∃! (u : U), ∃! (v : U.carrier ⟂), x = u + v := by sorry -- (WILL FIX LATER - akira)
+  ∀ x : H, ∃! (u : U), ∃! (v : U.carrier ⟂), x = u + v := by
+  intro x
+  have hne : (U.carrier).Nonempty := by
+    use 0
+    simp only [Submodule.carrier_eq_coe, SetLike.mem_coe, zero_mem]
+  have hconv : ConvexSet U.carrier := by
+    unfold ConvexSet
+    intro a b ha hb t _
+    let T := 1-t
+    have h1 : (1 - t) • a ∈ U := by exact Submodule.smul_mem U T ha
+    have h2 : t • b ∈ U := by exact Submodule.smul_mem U t hb
+    exact U.add_mem' h1 h2
+  obtain ⟨u, hu⟩ := closest_point U.carrier hne h hconv x
+  dsimp only [Submodule.carrier_eq_coe, SetLike.coe_sort_coe] at hu
+  use u
+  dsimp
+  constructor
+  · let v := x - u
+    have : v ∈ U.carrier ⟂ := by sorry
+    sorry
+  · sorry
+
+variable (x y : U.carrier) (a b : ℂ)
+example : 2•x ∈ U := by sorry
 
 def Projection (P : H →L[ℂ] H) : Prop :=
   ∀ x : H, P (P x) = P x
