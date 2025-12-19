@@ -48,8 +48,19 @@ theorem parallelogram (x y : V) : ⟪x+y, x+y⟫_ℂ + ⟪x-y, x-y⟫_ℂ = 2*�
 
 -- Parallelogram law with induced norms in V
 theorem parallelogram_norm (x y : V) : ‖x+y‖^2 + ‖x-y‖^2 = 2*‖x‖^2 + 2*‖y‖^2 := by
-  rw [←inner_self_eq_norm_sq_to_K]
-  sorry
+ have : ‖x + y‖ ^ 2 + ‖x - y‖ ^ 2 = RCLike.ofReal (‖x + y‖ ^ 2 + ‖x - y‖ ^ 2) := by simp
+ rw [this]
+ have : 2 * ‖x‖ ^ 2 + 2 * ‖y‖ ^ 2 = RCLike.ofReal (2 * ‖x‖ ^ 2 + 2 * ‖y‖ ^ 2) := by simp
+ rw [this]
+ push_cast
+ let : InnerProductSpace ℝ V := by exact rclikeToReal ℂ V
+ simp_rw [← inner_self_eq_norm_sq_to_K]
+ rw [← Complex.ofReal_inj]
+ push_cast
+ have : ∀ z : V, ⟪z, z⟫_ℝ = ⟪z, z⟫_ℂ := by simp only [inner_self_eq_norm_sq_to_K,
+   RCLike.ofReal_real_eq_id, id_eq, Complex.ofReal_pow, Complex.coe_algebraMap, implies_true]
+ simp_rw [this]
+ exact parallelogram x y
 
 -- Prop 4.10
 theorem convergence_inner (xn yn : ℕ → V) (x y : V)
