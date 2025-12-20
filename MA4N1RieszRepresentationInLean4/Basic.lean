@@ -11,6 +11,7 @@ open InnerProductSpace
 
 --variable {𝕂 : Type*} [RCLike 𝕂] -- Field 𝕂 = ℝ or ℂ
 variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℂ V] -- Inner product space
+variable (W : Submodule ℂ V) -- Subspace of inner product space
 
 example (x : V) : ⟪x, 0⟫_ℂ = 0 := by exact inner_zero_right x
 example (x : V) : ⟪x, x⟫_ℂ = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
@@ -198,6 +199,15 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : Conv
 
   -- requires parallelogram (Prop 4.7
 
+-- subspaces are convex
+lemma subspace_convex : ConvexSet W.carrier := by
+  unfold ConvexSet
+  intro a b ha hb t _
+  let T := 1-t
+  have h1 : (1 - t) • a ∈ W := by exact Submodule.smul_mem W T ha
+  have h2 : t • b ∈ W := by exact Submodule.smul_mem W t hb
+  exact W.add_mem' h1 h2
+
 -- Thm 5.20: For U closed linear subspace, H = U ⨁ U^⟂ (requires Prop 5.16)
 theorem orthogonal_decompose (h : IsClosed U.carrier) :
   ∀ x : H, ∃! (u : U), ∃! (v : U.carrier ⟂), x = u + v := by
@@ -205,13 +215,7 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
   have hne : (U.carrier).Nonempty := by
     use 0
     simp only [Submodule.carrier_eq_coe, SetLike.mem_coe, zero_mem]
-  have hconv : ConvexSet U.carrier := by
-    unfold ConvexSet
-    intro a b ha hb t _
-    let T := 1-t
-    have h1 : (1 - t) • a ∈ U := by exact Submodule.smul_mem U T ha
-    have h2 : t • b ∈ U := by exact Submodule.smul_mem U t hb
-    exact U.add_mem' h1 h2
+  have hconv : ConvexSet U.carrier := by exact subspace_convex U
   obtain ⟨u, hu⟩ := closest_point U.carrier hne h hconv x
   dsimp only [Submodule.carrier_eq_coe, SetLike.coe_sort_coe] at hu
   use u
