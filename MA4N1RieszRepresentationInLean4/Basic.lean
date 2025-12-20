@@ -197,14 +197,18 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : Conv
 
   -- requires parallelogram (Prop 4.7
 
--- subspaces are convex
-lemma subspace_convex : ConvexSet W.carrier := by
+-- linear subspaces are convex
+lemma lin_subspace_convex : ConvexSet W.carrier := by
   unfold ConvexSet
   intro a b ha hb t _
   let T := 1-t
   have h1 : (1 - t) • a ∈ W := by exact Submodule.smul_mem W T ha
   have h2 : t • b ∈ W := by exact Submodule.smul_mem W t hb
   exact W.add_mem' h1 h2
+
+-- u closest point to x in U → x-u ∈ U⟂
+lemma sub_closest_in_orth (x : H) (u : U) (h : ‖x - u‖ = sInf (Set.range fun a : U => ‖x - a‖)):
+  (x - u) ∈ U.carrier ⟂ := by sorry
 
 -- Thm 5.20: For U closed linear subspace, H = U ⨁ U^⟂ (requires Prop 5.16)
 theorem orthogonal_decompose (h : IsClosed U.carrier) :
@@ -213,14 +217,13 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
   have hne : (U.carrier).Nonempty := by
     use 0
     simp only [Submodule.carrier_eq_coe, SetLike.mem_coe, zero_mem]
-  have hconv : ConvexSet U.carrier := by exact subspace_convex U
+  have hconv : ConvexSet U.carrier := by exact lin_subspace_convex U
   obtain ⟨u, hu⟩ := closest_point U.carrier hne h hconv x
   dsimp only [Submodule.carrier_eq_coe, SetLike.coe_sort_coe] at hu
   use u
-  let v := x - u
   dsimp
   constructor
-  · have : v ∈ U.carrier ⟂ := by sorry
+  · let (v : U.carrier ⟂) := sub_closest_in_orth x u hu
     use v -- (WIP - akira)
   · sorry
 
