@@ -8,8 +8,6 @@ import Mathlib.Tactic
 
 open InnerProductSpace
 
-
---variable {𝕂 : Type*} [RCLike 𝕂] -- Field 𝕂 = ℝ or ℂ
 variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℂ V] -- Inner product space
 variable (W : Submodule ℂ V) -- Subspace of inner product space
 
@@ -69,7 +67,6 @@ theorem convergence_inner (xn yn : ℕ → V) (x y : V)
   (hyn : ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖yn n - y‖ < ε) :
   ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖(⟪xn n, yn n⟫_ℂ - ⟪x, y⟫_ℂ)‖ < ε := by sorry
 
-
 -- Define orthogonality (polymorphic over any inner-product space)
 def Orthogonal (x y : V) : Prop := ⟪x, y⟫_ℂ = 0
 notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogonal x y
@@ -85,7 +82,6 @@ def OrthonormalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGr
   (∀ x ∈ S, ‖x‖ = 1) ∧ OrthogonalSet (𝕜 := 𝕜) S
 
 -- LinearIndependent had already been declared (might want to do it ourselves)
-
 
 -- Defn: operator norm for inner product spaces -> using defn in 6.1
 noncomputable def OperatorNorm (F : V →L[ℂ] ℂ) : ℝ :=
@@ -104,8 +100,8 @@ lemma operator_cts_then_bdd (T : V →L[ℂ] ℂ) :
 --lem : ‖T‖_op as a bound for T
 lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op * ‖x‖ := by
   by_cases h : x = 0
-  · rw [h, ContinuousLinearMap.map_zero T, norm_zero, norm_zero]
-    simp
+  · simp_rw [h, ContinuousLinearMap.map_zero T, norm_zero, mul_zero]
+    rfl
   · have hneq : ‖x‖ ≠ 0 := by
       apply (not_congr (@norm_eq_zero V _ x)).mpr
       exact h
@@ -123,13 +119,12 @@ lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op *
       _ = ‖T ((1/‖x‖)•x)‖ * ‖x‖ := by
         rw [ContinuousLinearMap.map_smul_of_tower, norm_smul, norm_norm, mul_comm]
       _ ≤ ‖T‖_op * ‖x‖ := by
-        let s := (fun x => ‖T x‖) '' {x : V | ‖x‖ ≤ 1}
-        have hT : ‖T ((1/‖x‖)•x)‖ ∈ s := by
-          exact Set.mem_image_of_mem (fun x ↦ ‖T x‖) hle1
         apply mul_le_mul_of_nonneg_right
-        · exact ConditionallyCompleteLattice.le_csSup s ‖T ((1/‖x‖)•x)‖ (operator_cts_then_bdd T) hT
+        · let s := (fun x => ‖T x‖) '' {x : V | ‖x‖ ≤ 1}
+          have : ‖T ((1/‖x‖)•x)‖ ∈ s := by exact Set.mem_image_of_mem (fun x ↦ ‖T x‖) hle1
+          exact
+          ConditionallyCompleteLattice.le_csSup s ‖T ((1/‖x‖)•x)‖ (operator_cts_then_bdd T) this
         · exact norm_nonneg x
-
 
 -- HILBERT SPACES
 
@@ -141,9 +136,6 @@ variable (U : Submodule ℂ H) -- U subspace of H (NOTE : using ℂ instead of �
 -- Define Orthogonal complement of a set
 noncomputable def OrthogonalComplement (A : Set H) : Set H := {y : H | ∀ x ∈ A, ⟪x, y⟫_ℂ = 0}
 notation A "⟂" => OrthogonalComplement A
-
-
-
 
 -- Defn 5.15
 def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
@@ -225,11 +217,11 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
   obtain ⟨u, hu⟩ := closest_point U.carrier hne h hconv x
   dsimp only [Submodule.carrier_eq_coe, SetLike.coe_sort_coe] at hu
   use u
+  let v := x - u
   dsimp
   constructor
-  · let v := x - u
-    have : v ∈ U ⟂ := by sorry
-    sorry
+  · have : v ∈ U.carrier ⟂ := by sorry
+    use v -- (WIP - akira)
   · sorry
 
 def Projection (P : H →L[ℂ] H) : Prop :=
