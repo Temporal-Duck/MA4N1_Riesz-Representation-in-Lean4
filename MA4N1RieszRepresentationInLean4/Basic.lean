@@ -93,6 +93,14 @@ noncomputable def OperatorNorm (F : V →L[ℂ] ℂ) : ℝ :=
 
 notation "‖" T "‖_op" => OperatorNorm T
 
+--lem : ‖ . ‖_op well defined
+--(sSup is defined such that (s : Set ℝ) unbdd → sSup s = 0 so we have to
+--specify that the set (Set.image (fun x => ‖T x‖) { x : V | ‖x‖ ≤ 1 }) is bounded to
+--not run into issues proving operator_bound)
+lemma operator_cts_then_bdd (T : V →L[ℂ] ℂ) :
+  BddAbove (Set.image (fun x => ‖T x‖) {x : V | ‖x‖ ≤ 1}) := by
+  sorry
+
 --lem : ‖T‖_op as a bound for T
 lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op * ‖x‖ := by
   by_cases h : x = 0
@@ -115,15 +123,13 @@ lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op *
       _ = ‖T ((1/‖x‖)•x)‖ * ‖x‖ := by
         rw [ContinuousLinearMap.map_smul_of_tower, norm_smul, norm_norm, mul_comm]
       _ ≤ ‖T‖_op * ‖x‖ := by
-        have hT : ‖T ((1/‖x‖)•x)‖ ∈ (fun x => ‖T x‖) '' { x : V | ‖x‖ ≤ 1 } := by
+        let s := (fun x => ‖T x‖) '' {x : V | ‖x‖ ≤ 1}
+        have hT : ‖T ((1/‖x‖)•x)‖ ∈ s := by
           exact Set.mem_image_of_mem (fun x ↦ ‖T x‖) hle1
-        unfold OperatorNorm
-        rw [Real.sSup_def]
-        -- WIP
-        sorry
+        apply mul_le_mul_of_nonneg_right
+        · exact ConditionallyCompleteLattice.le_csSup s ‖T ((1/‖x‖)•x)‖ (operator_cts_then_bdd T) hT
+        · exact norm_nonneg x
 
-#check Real.isLUB_sSup
-#check IsLUB
 
 -- HILBERT SPACES
 
