@@ -14,9 +14,7 @@ variable (W : Submodule ℂ V) -- Subspace of inner product space
 example (x : V) : ⟪x, 0⟫_ℂ = 0 := by exact inner_zero_right x
 example (x : V) : ⟪x, x⟫_ℂ = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
 
-def BoundedLinearOperator {𝕜 : Type*} [NormedField 𝕜] {V U : Type*}
-  [SeminormedAddCommGroup V] [Module 𝕜 V] [SeminormedAddCommGroup U] [Module 𝕜 U]
-  (A : V →ₗ[𝕜] U) : Prop :=
+def BoundedLinearOperator (A : V →ₗ[ℂ] ℂ) : Prop :=
   ∃ (M : ℝ), 0 ≤ M ∧ ∀ x : V, ‖A x‖ ≤ M * ‖x‖
 
 -- Thm: Cauchy-Schwartz inequality
@@ -47,19 +45,19 @@ theorem parallelogram (x y : V) : ⟪x+y, x+y⟫_ℂ + ⟪x-y, x-y⟫_ℂ = 2*�
 
 -- Parallelogram law with induced norms in V
 theorem parallelogram_norm (x y : V) : ‖x+y‖^2 + ‖x-y‖^2 = 2*‖x‖^2 + 2*‖y‖^2 := by
- have : ‖x + y‖ ^ 2 + ‖x - y‖ ^ 2 = RCLike.ofReal (‖x + y‖ ^ 2 + ‖x - y‖ ^ 2) := by simp
- rw [this]
- have : 2 * ‖x‖ ^ 2 + 2 * ‖y‖ ^ 2 = RCLike.ofReal (2 * ‖x‖ ^ 2 + 2 * ‖y‖ ^ 2) := by simp
- rw [this]
- push_cast
- let : InnerProductSpace ℝ V := by exact rclikeToReal ℂ V
- simp_rw [← inner_self_eq_norm_sq_to_K]
- rw [← Complex.ofReal_inj]
- push_cast
- have : ∀ z : V, ⟪z, z⟫_ℝ = ⟪z, z⟫_ℂ := by simp only [inner_self_eq_norm_sq_to_K,
-   RCLike.ofReal_real_eq_id, id_eq, Complex.ofReal_pow, Complex.coe_algebraMap, implies_true]
- simp_rw [this]
- exact parallelogram x y
+  have : ‖x + y‖ ^ 2 + ‖x - y‖ ^ 2 = RCLike.ofReal (‖x + y‖ ^ 2 + ‖x - y‖ ^ 2) := by simp
+  rw [this]
+  have : 2 * ‖x‖ ^ 2 + 2 * ‖y‖ ^ 2 = RCLike.ofReal (2 * ‖x‖ ^ 2 + 2 * ‖y‖ ^ 2) := by simp
+  rw [this]
+  push_cast
+  let : InnerProductSpace ℝ V := by exact rclikeToReal ℂ V
+  simp_rw [← inner_self_eq_norm_sq_to_K]
+  rw [← Complex.ofReal_inj]
+  push_cast
+  have : ∀ z : V, ⟪z, z⟫_ℝ = ⟪z, z⟫_ℂ := by simp only [inner_self_eq_norm_sq_to_K,
+    RCLike.ofReal_real_eq_id, id_eq, Complex.ofReal_pow, Complex.coe_algebraMap, implies_true]
+  simp_rw [this]
+  exact parallelogram x y
 
 -- Prop 4.10
 theorem convergence_inner (xn yn : ℕ → V) (x y : V)
@@ -89,23 +87,33 @@ noncomputable def OperatorNorm (F : V →L[ℂ] ℂ) : ℝ :=
 
 notation "‖" T "‖_op" => OperatorNorm T
 
---lem : ‖ . ‖_op well defined
+--prop 6.3 (<=)
+lemma functional_cts_then_bdd (T : V →L[ℂ] ℂ) : BoundedLinearOperator T :=
+  by sorry
+
+noncomputable
+example : InnerProductSpace ℂ ℂ := by exact RCLike.innerProductSpace
+
+--lem : ‖ . ‖_op well defined as OperatorNorm is bounded
 --(sSup is defined such that (s : Set ℝ) unbdd → sSup s = 0 so we have to
 --specify that the set (Set.image (fun x => ‖T x‖) { x : V | ‖x‖ ≤ 1 }) is bounded to
 --not run into issues proving operator_bound)
 lemma operator_cts_then_bdd (T : V →L[ℂ] ℂ) :
-  BddAbove (Set.image (fun x => ‖T x‖) {x : V | ‖x‖ ≤ 1}) := by
+  BddAbove (Set.image (fun x => ‖T x‖) {x | ‖x‖ ≤ 1}) := by
+  use ‖T‖_op
+  unfold OperatorNorm
+
   sorry
 
---lem : ‖T‖_op as a bound for T
-lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op * ‖x‖ := by
+--thm : ‖T‖_op as a bound for T
+theorem operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op * ‖x‖ := by
   by_cases h : x = 0
   · simp_rw [h, ContinuousLinearMap.map_zero T, norm_zero, mul_zero]
     rfl
-  · have hneq : ‖x‖ ≠ 0 := by
+  · have : ‖x‖ ≠ 0 := by
       apply (not_congr (@norm_eq_zero V _ x)).mpr
       exact h
-    have h1 : ‖x‖/‖x‖ = 1 := by exact (div_eq_one_iff_eq hneq).mpr rfl
+    have h1 : ‖x‖/‖x‖ = 1 := by exact (div_eq_one_iff_eq this).mpr rfl
     have hle1 : ‖(1/‖x‖)•x‖ ≤ 1 := by
       calc
       ‖(1/‖x‖)•x‖ = ‖x‖/‖x‖ := by
@@ -132,10 +140,6 @@ lemma operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op *
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 variable [CompleteSpace H] -- Hilbert Space
 variable (U : Submodule ℂ H) -- U subspace of H (NOTE : using ℂ instead of 𝕂 for now - akira)
-
--- Define Orthogonal complement of a set
-noncomputable def OrthogonalComplement (A : Set H) : Set H := {y : H | ∀ x ∈ A, ⟪x, y⟫_ℂ = 0}
-notation A "⟂" => OrthogonalComplement A
 
 -- Defn 5.15
 def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
@@ -197,6 +201,26 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : Conv
 
   -- requires parallelogram (Prop 4.7
 
+-- Define Orthogonal complement of a set + show its a linear subspace
+def OrthogonalComplement (A : Set H) : Submodule ℂ H where
+  carrier := {y : H | ∀ x ∈ A, ⟪x, y⟫_ℂ = 0}
+  add_mem' {a b} ha hb := by
+    dsimp
+    intro x hx
+    dsimp at ha
+    dsimp at hb
+    rw [inner_add_right, (ha x) hx, (hb x) hx, zero_add]
+  zero_mem' := by
+    dsimp
+    exact fun x a ↦ inner_zero_right x
+  smul_mem' c {x} hx := by
+    dsimp
+    intro y hy
+    dsimp at hx
+    simp_rw [inner_smul_right, (hx y) hy, mul_zero]
+
+notation A "⟂" => OrthogonalComplement A
+
 -- linear subspaces are convex
 lemma lin_subspace_convex : ConvexSet W.carrier := by
   unfold ConvexSet
@@ -207,8 +231,9 @@ lemma lin_subspace_convex : ConvexSet W.carrier := by
   exact W.add_mem' h1 h2
 
 -- u closest point to x in U → x-u ∈ U⟂
-lemma sub_closest_in_orth (x : H) (u : U) (h : ‖x - u‖ = sInf (Set.range fun a : U => ‖x - a‖)):
-  (x - u) ∈ U.carrier ⟂ := by sorry
+lemma sub_closest_in_orth (x : H) (u : U) (h : ‖x - u‖ = sInf (Set.range fun a ↦ ‖x - a‖)) :
+  (x - u) ∈ U.carrier ⟂ := by
+  sorry
 
 -- Thm 5.20: For U closed linear subspace, H = U ⨁ U^⟂ (requires Prop 5.16)
 theorem orthogonal_decompose (h : IsClosed U.carrier) :
@@ -223,8 +248,15 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
   use u
   dsimp
   constructor
-  · let (v : U.carrier ⟂) := sub_closest_in_orth x u hu
-    use v -- (WIP - akira)
+  · let v := x - u
+    use ⟨v, ?_⟩
+    · dsimp
+      unfold v
+      refine ⟨?_, ?_⟩
+      · grind
+      · rintro ⟨y, hy⟩ rfl
+        simp
+    · sorry
   · sorry
 
 def Projection (P : H →L[ℂ] H) : Prop :=
