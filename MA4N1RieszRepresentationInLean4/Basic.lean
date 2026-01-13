@@ -154,9 +154,12 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : Conv
   intro x
   -- S = {‖x - a‖ | a ∈ A}
   let δ := sInf (Set.range fun a : A => ‖x - (a : H)‖)
+  #check δ
 
   have δ_nonneg : 0 ≤ δ := by
-    sorry
+    apply Real.sInf_nonneg
+    rintro _ ⟨a, rfl⟩
+    exact norm_nonneg (x - (a : H))
 
   --build seq with ‖x - a_n‖^2 → del^2
   have exist_seq : ∀ n : ℕ, ∃ a : A, ‖x - (a : H)‖^2 ≤ δ^2 + 1/(n+1) := by
@@ -194,7 +197,7 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : Conv
     -- Need to get ‖a_lim - b‖^2 = 0
     sorry
 
-    sorry
+      sorry
 
 
 
