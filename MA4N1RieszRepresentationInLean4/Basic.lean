@@ -154,7 +154,6 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : Conv
   intro x
   -- S = {‖x - a‖ | a ∈ A}
   let δ := sInf (Set.range fun a : A => ‖x - (a : H)‖)
-  #check δ
 
   have δ_nonneg : 0 ≤ δ := by
     apply Real.sInf_nonneg
@@ -162,9 +161,24 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : Conv
     exact norm_nonneg (x - (a : H))
 
   --build seq with ‖x - a_n‖^2 → del^2
-  have exist_seq : ∀ n : ℕ, ∃ a : A, ‖x - (a : H)‖^2 ≤ δ^2 + 1/(n+1) := by
+  have exist_seq :
+    ∀ n : ℕ, ∃ a : A, ‖x - (a : H)‖ ≤ δ + 1/(n+1) := by
     intro n
-    sorry
+    have hpos : 0 < (1 : ℝ) / (n + 1) := by
+      have hpos' : (0 : ℝ) < (n + 1) := by
+        exact_mod_cast Nat.succ_pos n
+      exact one_div_pos.mpr hpos'
+
+    -- Use definition of infimum
+    have hne : (Set.range fun a : A => ‖x - (a : H)‖).Nonempty := by
+      rcases h0 with ⟨a⟩
+      refine ⟨‖x - (a : H)‖, ?_⟩
+      exact ⟨⟨a, by trivial⟩, rfl⟩
+
+    -- missing
+
+    linarith
+
 
   --build seq and its spec
   let seq := fun n => Classical.choose (exist_seq n)
@@ -196,8 +210,7 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : Conv
       --sorry
     -- Need to get ‖a_lim - b‖^2 = 0
     sorry
-
-      sorry
+  sorry
 
 
 
