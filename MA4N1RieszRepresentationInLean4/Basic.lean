@@ -91,19 +91,24 @@ notation "‖" T "‖_op" => OperatorNorm T
 lemma functional_cts_then_bdd (T : V →L[ℂ] ℂ) : BoundedLinearOperator T :=
   by sorry
 
-noncomputable
-example : InnerProductSpace ℂ ℂ := by exact RCLike.innerProductSpace
-
 --lem : ‖ . ‖_op well defined as OperatorNorm is bounded
 --(sSup is defined such that (s : Set ℝ) unbdd → sSup s = 0 so we have to
 --specify that the set (Set.image (fun x => ‖T x‖) { x : V | ‖x‖ ≤ 1 }) is bounded to
 --not run into issues proving operator_bound)
 lemma operator_cts_then_bdd (T : V →L[ℂ] ℂ) :
   BddAbove (Set.image (fun x => ‖T x‖) {x | ‖x‖ ≤ 1}) := by
+  unfold BddAbove
+  unfold upperBounds
   use ‖T‖_op
+  simp
   unfold OperatorNorm
-
+  intro a ha
+  have hTa : ‖T a‖ ∈ (fun x ↦ ‖T x‖) '' {x | ‖x‖ ≤ 1} := by sorry
   sorry
+
+#check ContinuousLinearMap.isBoundedLinearMap
+#check IsBoundedLinearMap
+#check ConditionallyCompleteLattice.le_csSup
 
 --thm : ‖T‖_op as a bound for T
 theorem operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op * ‖x‖ := by
