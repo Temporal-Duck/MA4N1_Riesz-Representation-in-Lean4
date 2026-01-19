@@ -384,3 +384,4 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
     use 0, ⟨fun x => by simp [h], by sorry⟩
     intro y' ⟨hy'_eq, _⟩
     sorry
+    --- End of riesz_rep theorem
