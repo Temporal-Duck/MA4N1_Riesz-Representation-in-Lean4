@@ -87,10 +87,6 @@ noncomputable def OperatorNorm (F : V →L[ℂ] ℂ) : ℝ :=
 
 notation "‖" T "‖_op" => OperatorNorm T
 
---prop 6.3 (<=)
-lemma functional_cts_then_bdd (T : V →L[ℂ] ℂ) : BoundedLinearOperator T :=
-  by sorry
-
 --lem : ‖ . ‖_op well defined as OperatorNorm is bounded
 --(sSup is defined such that (s : Set ℝ) unbdd → sSup s = 0 so we have to
 --specify that the set (Set.image (fun x => ‖T x‖) { x : V | ‖x‖ ≤ 1 }) is bounded to
@@ -99,16 +95,15 @@ lemma operator_cts_then_bdd (T : V →L[ℂ] ℂ) :
   BddAbove (Set.image (fun x => ‖T x‖) {x | ‖x‖ ≤ 1}) := by
   unfold BddAbove
   unfold upperBounds
-  use ‖T‖_op
   simp
-  unfold OperatorNorm
+  have : ∃ M, 0 < M ∧ ∀ (x : V), ‖T x‖ ≤ M * ‖x‖ := by exact ContinuousLinearMap.bound T
+  obtain ⟨M, hM⟩ := this
+  use M
+  dsimp
   intro a ha
-  have hTa : ‖T a‖ ∈ (fun x ↦ ‖T x‖) '' {x | ‖x‖ ≤ 1} := by sorry
-  sorry
-
-#check ContinuousLinearMap.isBoundedLinearMap
-#check IsBoundedLinearMap
-#check ConditionallyCompleteLattice.le_csSup
+  calc
+    ‖T a‖ ≤ M * ‖a‖ := by exact hM.2 a
+    _ ≤ M := by exact (mul_le_iff_le_one_right hM.1).mpr ha
 
 --thm : ‖T‖_op as a bound for T
 theorem operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op * ‖x‖ := by
