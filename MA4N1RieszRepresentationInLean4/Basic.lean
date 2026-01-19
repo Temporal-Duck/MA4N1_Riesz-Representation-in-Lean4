@@ -369,6 +369,12 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
       have hv_in_orth : (v : H) ∈ U.carrier ⟂ := v.property
       have hx_decomp : x = (u : H) + (v : H) := hv_eq
       have ⟨c, hc_span⟩ := hz_span (v : H) hv_in_orth
+
+      -- Compute G(x) using linearity and properties of u, v
+      have Gx_eq : G x = G (u : H) + G (v : H) := by
+        rw [hx_decomp, ContinuousLinearMap.map_add G u v]
+      have Gx_eq' : G x = 0 + G (v : H) := by
+        rw [Gx_eq, hu_in_U]
       sorry -- Use that u ∈ U so G(u)=0, v = c•z, then compute ⟪x, y⟫
 
     -- Show that ‖G‖_op = ‖y‖
