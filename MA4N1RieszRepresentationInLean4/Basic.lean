@@ -328,7 +328,8 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
     }
 
     --Assume that U is closed
-    have U_closed : IsClosed U.carrier := by sorry
+    have U_closed : IsClosed U.carrier := by
+      exact ContinuousLinearMap.isClosed_ker G
 
     -- Get the orthogonal decomposition of x₀
     have ⟨u₀, hu₀_eq, hu₀_unique⟩ := orthogonal_decompose U U_closed x₀
