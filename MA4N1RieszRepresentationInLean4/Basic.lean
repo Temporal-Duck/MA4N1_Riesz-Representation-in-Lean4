@@ -88,16 +88,12 @@ noncomputable def OperatorNorm (F : V →L[ℂ] ℂ) : ℝ :=
 notation "‖" T "‖_op" => OperatorNorm T
 
 --lem : ‖ . ‖_op well defined as OperatorNorm is bounded
---(sSup is defined such that (s : Set ℝ) unbdd → sSup s = 0 so we have to
---specify that the set (Set.image (fun x => ‖T x‖) { x : V | ‖x‖ ≤ 1 }) is bounded to
---not run into issues proving operator_bound)
 lemma operator_cts_then_bdd (T : V →L[ℂ] ℂ) :
   BddAbove (Set.image (fun x => ‖T x‖) {x | ‖x‖ ≤ 1}) := by
   unfold BddAbove
   unfold upperBounds
   simp
-  have : ∃ M, 0 < M ∧ ∀ (x : V), ‖T x‖ ≤ M * ‖x‖ := by exact ContinuousLinearMap.bound T
-  obtain ⟨M, hM⟩ := this
+  obtain ⟨M, hM⟩ := ContinuousLinearMap.bound T
   use M
   dsimp
   intro a ha
@@ -147,6 +143,24 @@ def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
     (1 - t) • x + t • y ∈ S
 -- NOTE: Might be better to use 𝕂 = ℂ since notes assume complex Hilbert spaces. It would also
 -- make ConvexSet easier to apply as we run into issues treating V as an ℝ-module - Akira
+
+-- Existence of sequence in Prop 5.16
+lemma exists_sequence (x : H) (A : Set H) (hne : A.Nonempty) (n : ℕ) :
+  ∃ a : A, ‖x - a‖^2 ≤ (sInf (Set.range fun a : A => ‖x - a‖))^2 + 1/n := by
+  let δ := sInf (Set.range fun a : A => ‖x - a‖)
+  sorry
+
+-- prop 5.16 edit - akira
+theorem closest_point_temp (A : Set H) (hne : A.Nonempty) (hclosed : IsClosed A) (hconv : ConvexSet A) :
+  ∀ x : H, ∃! k : A, ‖x - (k : H)‖ = sInf (Set.range fun a : A => ‖x - (a : H)‖) := by
+  intro x
+  let δ := sInf (Set.range fun a : A => ‖x - (a : H)‖)
+  let t := fun n => Classical.choose (exists_sequence x A hne n)
+  have : CauchySeq t := by sorry
+  obtain ⟨a, ha⟩ := cauchySeq_tendsto_of_complete this
+  use a
+  dsimp
+  sorry
 
 -- Prop 5.16: Closest point on a convex set
 theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : ConvexSet A) :
@@ -214,8 +228,6 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : Conv
 
 
 
-
-  -- requires parallelogram (Prop 4.7
 
 -- Define Orthogonal complement of a set + show its a linear subspace
 def OrthogonalComplement (A : Set H) : Submodule ℂ H where
