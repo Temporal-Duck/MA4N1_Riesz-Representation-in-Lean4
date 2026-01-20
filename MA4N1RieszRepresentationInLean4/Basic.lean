@@ -146,21 +146,29 @@ def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
 
 -- Existence of sequence in Prop 5.16
 lemma exists_sequence (x : H) (A : Set H) (hne : A.Nonempty) (n : ℕ) :
-  ∃ a : A, ‖x - a‖^2 ≤ (sInf (Set.range fun a : A => ‖x - a‖))^2 + 1/n := by
+  ∃ a, a ∈ A ∧ ‖x - a‖^2 ≤ (sInf (Set.range fun a : A => ‖x - a‖))^2 + 1/n := by
   let δ := sInf (Set.range fun a : A => ‖x - a‖)
   sorry
 
 -- prop 5.16 edit - akira
 theorem closest_point_temp (A : Set H) (hne : A.Nonempty) (hclosed : IsClosed A) (hconv : ConvexSet A) :
-  ∀ x : H, ∃! k : A, ‖x - (k : H)‖ = sInf (Set.range fun a : A => ‖x - (a : H)‖) := by
+  ∀ x : H, ∃! k : A, ‖x - k‖ = sInf (Set.range fun a : A => ‖x - a‖) := by
   intro x
-  let δ := sInf (Set.range fun a : A => ‖x - (a : H)‖)
+  let δ := sInf (Set.range fun a : A => ‖x - a‖)
   let t := fun n => Classical.choose (exists_sequence x A hne n)
-  have : CauchySeq t := by sorry
-  obtain ⟨a, ha⟩ := cauchySeq_tendsto_of_complete this
-  use a
-  dsimp
-  sorry
+  have : CauchySeq t := by
+    apply NormedAddCommGroup.cauchySeq_iff.mpr
+    sorry
+  obtain ⟨k, hk⟩ := cauchySeq_tendsto_of_complete this -- (t n → k as n → ∞)
+  use ⟨k, ?_⟩
+  · dsimp
+    constructor
+    ·
+      sorry
+    · intro y hy
+
+      sorry
+  · sorry
 
 -- Prop 5.16: Closest point on a convex set
 theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : ConvexSet A) :
