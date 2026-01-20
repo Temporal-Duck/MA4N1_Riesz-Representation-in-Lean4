@@ -150,6 +150,14 @@ lemma exists_sequence (x : H) (A : Set H) (hne : A.Nonempty) (n : ℕ) :
   let δ := sInf (Set.range fun a : A => ‖x - a‖)
   sorry
 
+lemma midpoint_closer_to_x (x : H) (A : Set H) (a b : A) :
+  ‖x - (1/2) • (a + b)‖^2 = (1/2)*‖x - a‖^2 + (1/2)*‖x - b‖^2 - (1/4)*‖(a : H) - b‖^2 := by
+  sorry
+
+example (a b c d : ℝ) (h : a + b = c + d) : (a + b) * 4 = (c + d) * 4 := by
+  exact
+  congrFun (congrArg HMul.hMul h) 4
+
 -- prop 5.16 edit - akira
 theorem closest_point_temp (A : Set H) (hne : A.Nonempty) (hclosed : IsClosed A) (hconv : ConvexSet A) :
   ∀ x : H, ∃! k : A, ‖x - k‖ = sInf (Set.range fun a : A => ‖x - a‖) := by
@@ -158,17 +166,17 @@ theorem closest_point_temp (A : Set H) (hne : A.Nonempty) (hclosed : IsClosed A)
   let t := fun n => Classical.choose (exists_sequence x A hne n)
   have : CauchySeq t := by
     apply NormedAddCommGroup.cauchySeq_iff.mpr
+    intro ε hε
     sorry
   obtain ⟨k, hk⟩ := cauchySeq_tendsto_of_complete this -- (t n → k as n → ∞)
   use ⟨k, ?_⟩
   · dsimp
     constructor
-    ·
-      sorry
-    · intro y hy
-
-      sorry
-  · sorry
+    · sorry
+    · sorry
+  · apply IsClosed.mem_of_tendsto hclosed hk
+    unfold Filter.Eventually
+    sorry
 
 -- Prop 5.16: Closest point on a convex set
 theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : ConvexSet A) :
