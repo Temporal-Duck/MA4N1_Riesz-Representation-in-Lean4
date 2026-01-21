@@ -154,12 +154,9 @@ lemma midpoint_closer_to_x (x : H) (A : Set H) (a b : A) :
   ‖x - (1/2) • (a + b)‖^2 = (1/2)*‖x - a‖^2 + (1/2)*‖x - b‖^2 - (1/4)*‖(a : H) - b‖^2 := by
   sorry
 
-example (a b c d : ℝ) (h : a + b = c + d) : (a + b) * 4 = (c + d) * 4 := by
-  exact
-  congrFun (congrArg HMul.hMul h) 4
-
 -- prop 5.16 edit - akira
-theorem closest_point_temp (A : Set H) (hne : A.Nonempty) (hclosed : IsClosed A) (hconv : ConvexSet A) :
+theorem closest_point_temp (A : Set H) (hne : A.Nonempty)
+(hclosed : IsClosed A) (hconv : ConvexSet A) :
   ∀ x : H, ∃! k : A, ‖x - k‖ = sInf (Set.range fun a : A => ‖x - a‖) := by
   intro x
   let δ := sInf (Set.range fun a : A => ‖x - a‖)
@@ -167,6 +164,26 @@ theorem closest_point_temp (A : Set H) (hne : A.Nonempty) (hclosed : IsClosed A)
   have : CauchySeq t := by
     apply NormedAddCommGroup.cauchySeq_iff.mpr
     intro ε hε
+    let N := Nat.ceil (4/(ε^2))
+    use N
+    intro m hm
+    intro n hn
+    have : δ^2 ≤ δ^2 + 1/(2*n) + 1/(2*m) - (1/4)*‖t n - t m‖^2 := by
+      calc
+        δ^2 ≤ ‖x - (1/2)•(t n + t m)‖^2 := by
+          have hδ : 0 ≤ δ := by
+            apply Real.sInf_nonneg
+            rintro _ ⟨a, rfl⟩
+            exact norm_nonneg (x - a)
+          have hle : δ ≤ ‖x - (1/2)•(t n + t m)‖ := by sorry
+          exact pow_le_pow_left₀ hδ hle 2
+        _ = (1/2)*‖x - t n‖^2 + (1/2)*‖x - t m‖^2 - (1/4)*‖t n - t m‖^2 := by
+          #check parallelogram_norm (x - t n) (x - t m)
+          sorry
+        _ = (1/2)*(δ^2+1/n) + (1/2)*(δ^2+1/m)^2 - (1/4)*‖t n - t m‖^2 := by
+          sorry
+        _ = δ^2 + 1/(2*n) + 1/(2*m) - (1/4)*‖t n - t m‖^2 := by sorry
+
     sorry
   obtain ⟨k, hk⟩ := cauchySeq_tendsto_of_complete this -- (t n → k as n → ∞)
   use ⟨k, ?_⟩
