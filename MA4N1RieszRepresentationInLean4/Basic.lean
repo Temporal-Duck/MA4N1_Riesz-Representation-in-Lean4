@@ -434,6 +434,20 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
         sorry
       have inner_eq : ⟪x, y⟫_ℂ = ⟪(v : H), G z • z⟫_ℂ := by
         rw [final, inner_add_left, remove_u, zero_add]
+      have final' : ⟪x, y⟫_ℂ = G x := by
+        rw [inner_eq]
+        rw [Gx_eq'']
+        rw [inner_smul_right, inner_smul_left]
+        simp_rw [inner_self_eq_norm_sq_to_K]
+        rw [hz_norm]
+        simp
+        have rew_1 : G (v : H) = c * G z := by
+          rw [Gx_eq'']
+          simp_rw [ContinuousLinearMap.map_smul]
+          simp
+        rw [mul_comm, RCLike.Complex.conj_eq_iff_real , rew_1.symm]
+
+
       sorry
       -- Use that u ∈ U so G(u)=0, v = c•z, then compute ⟪x, y⟫
 
