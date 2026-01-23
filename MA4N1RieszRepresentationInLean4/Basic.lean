@@ -296,6 +296,12 @@ lemma sub_closest_in_orth (x : H) (u : U) (h : ‖x - u‖ = sInf (Set.range fun
   (x - u) ∈ U.carrier ⟂ := by
   sorry
 
+-- To make uniqueness proofs easier
+lemma general_uniqueness {α : Type*} (s : Set α) (P : s → Prop)
+(u : s) (hPu : P u) (h : ∀ x₁, ∀ x₂, P x₁ ∧ P x₂ → x₁ = x₂) : ∀ y, P y → y = u := by
+  intro y hPy
+  exact h y u ⟨hPy, hPu⟩
+
 -- Thm 5.20: For U closed linear subspace, H = U ⨁ U^⟂ (requires Prop 5.16)
 theorem orthogonal_decompose (h : IsClosed U.carrier) :
   ∀ x : H, ∃! (u : U), ∃! (v : U.carrier ⟂), x = u + v := by
@@ -320,10 +326,7 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
     · by_contra h
 
       sorry
-  · intro y hy
-    obtain ⟨v, hv⟩ := hy
-    dsimp at hv
-
+  · let P : U → Prop := fun y => ∃! v, x = y + v
     sorry
 
 def Projection (P : H →L[ℂ] H) : Prop :=
