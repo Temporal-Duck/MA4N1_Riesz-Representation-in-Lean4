@@ -317,8 +317,14 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
       · grind
       · rintro ⟨y, hy⟩ rfl
         simp
-    · sorry
-  · sorry
+    · by_contra h
+
+      sorry
+  · intro y hy
+    obtain ⟨v, hv⟩ := hy
+    dsimp at hv
+
+    sorry
 
 def Projection (P : H →L[ℂ] H) : Prop :=
   ∀ x : H, P (P x) = P x
