@@ -398,7 +398,10 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
       exact hx₀ this
 
     -- Show that U⟂ is 1-dimensional
+
+    -- Need to check if there is a problem using the dot product rather than the actual inner product? Should be okay to change later if needed
     have dim_orth_one : ∃ z : H, (∀ w ∈ U.carrier ⟂, ∃ c : ℂ, (w : H) = c • z) ∧ ‖z‖ = 1 := by sorry
+
     obtain ⟨z, hz_span, hz_norm⟩ := dim_orth_one
 
     let y := G z • z
@@ -421,7 +424,15 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
         rw [hx_decomp, ContinuousLinearMap.map_add G u v]
       have Gx_eq' : G x = 0 + G (v : H) := by
         rw [Gx_eq, hu_in_U]
-      sorry -- Use that u ∈ U so G(u)=0, v = c•z, then compute ⟪x, y⟫
+      have Gx_eq'' : v = c • z := by exact hc_span
+      have final : ⟪x, y⟫_ℂ = ⟪(u : H) + (v : H), G z • z⟫_ℂ := by
+        rw [hx_decomp]
+      have remove_u : ⟪(u : H), G z • z⟫_ℂ = 0 := by
+        sorry
+      have inner_eq : ⟪x, y⟫_ℂ = ⟪(v : H), G z • z⟫_ℂ := by
+        rw [final, inner_add_left, remove_u, zero_add]
+      sorry
+      -- Use that u ∈ U so G(u)=0, v = c•z, then compute ⟪x, y⟫
 
     -- Show that ‖G‖_op = ‖y‖
     have norm_eq : OperatorNorm G = ‖y‖ := by sorry
