@@ -296,6 +296,17 @@ lemma sub_closest_in_orth (x : H) (u : U) (h : ‖x - u‖ = sInf (Set.range fun
   (x - u) ∈ U.carrier ⟂ := by
   sorry
 
+-- makes calc steps easier
+lemma real_sq_eq_complex_sq (a : ℝ) : ((a : ℂ)^2).re = a^2 := by
+  set x := a^2
+  have : (x : ℂ).re = x := by exact rfl
+  calc
+    ((a : ℂ)^2).re = (a^2 : ℂ).re := by exact rfl
+    _ = a^2 := by
+      simp only [x] at this
+      push_cast at this
+      exact this
+
 -- To make uniqueness proofs easier
 lemma general_uniqueness {α : Type*} (s : Set α) (P : s → Prop)
 (u : s) (hPu : P u) (h : ∀ x₁, ∀ x₂, P x₁ ∧ P x₂ → x₁ = x₂) : ∀ y, P y → y = u := by
@@ -315,7 +326,7 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
   use u
   dsimp
   constructor
-  · let v := x - u
+  · set v := x - u
     use ⟨v, ?_⟩
     · dsimp
       unfold v
@@ -324,7 +335,45 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
       · rintro ⟨y, hy⟩ rfl
         simp
     · by_contra h
-
+      unfold OrthogonalComplement at h
+      simp at h
+      obtain ⟨y', hy'_mem, hy'_ne⟩ := h
+      set α := ⟪y', v⟫_ℂ
+      set y := (1/α) • y'
+      have hy_one : ⟪y, v⟫_ℂ = 1 := by
+        simp_rw [y, inner_smul_left, α]
+        rw [one_div, mul_comm]
+        sorry -- star ring??
+      obtain ⟨n, hn⟩ := exists_nat_gt (‖y‖ ^ 2)
+      have : u + (1/Complex.ofReal n) • y ∈ U := by
+        apply Submodule.add_mem
+        · exact Submodule.coe_mem u
+        · unfold y
+          rw [smul_smul]
+          exact Submodule.smul_mem U ((1 / n) * (1 / α)) hy'_mem
+      set u_n : U := ⟨u + (1/(n : ℂ)) • y, this⟩
+      have : ‖x - u_n‖^2 = ‖v‖^2 - 2/n + (1/n^2) * ‖y‖^2 := by
+        calc
+          ‖x - u_n‖^2 = ‖v - (1/(n : ℂ))•y‖^2 := by
+            simp only [u_n, v]
+            rw [sub_add_eq_sub_sub]
+          _ = Complex.re ⟪v - (1/(n : ℂ))•y, v - (1/(n : ℂ))•y⟫_ℂ := by
+            rw [inner_self_eq_norm_sq_to_K]
+            exact (real_sq_eq_complex_sq ‖v - (1/(n : ℂ)) • y‖).symm
+          _ = Complex.re (⟪v, v⟫_ℂ - ⟪v, ((1 : ℂ) / (n : ℂ)) • y⟫_ℂ -
+            ⟪(1/(n : ℂ))•y, v⟫_ℂ +
+            ⟪(1/(n : ℂ))•y, (1/(n : ℂ))•y⟫_ℂ) := by
+            rw [inner_sub_sub_self]
+          _ = Complex.re ⟪v, v⟫_ℂ - Complex.re ⟪v, (1/(n : ℂ))•y⟫_ℂ -
+            Complex.re ⟪(1/(n : ℂ))•y, v⟫_ℂ +
+            Complex.re ⟪(1/(n : ℂ))•y, (1/(n : ℂ))•y⟫_ℂ := by
+            simp only [one_div, Complex.add_re, Complex.sub_re]
+          _ = ‖v‖^2 - 2/n + (1/n^2) * ‖y‖^2 := by
+            rw [inner_self_eq_norm_sq_to_K, inner_self_eq_norm_sq_to_K]
+            rw [norm_smul (1/(n : ℂ)) y]
+            --rw [real_sq_eq_complex_sq ‖(1/(n : ℂ))•y‖]
+            rw [←real_sq_eq_complex_sq ‖v‖]
+            sorry
       sorry
   · let P : U → Prop := fun y => ∃! v, x = y + v
     sorry
