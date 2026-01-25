@@ -343,9 +343,10 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
       have hy_one : ⟪y, v⟫_ℂ = 1 := by
         simp_rw [y, inner_smul_left, α]
         rw [one_div, mul_comm]
-        sorry -- unfortunately lean is conjugate linear in first entry as opposed to second entry
-        -- this could easily be fixed by writing all the inner products the other way around
-        -- but thats too tedious.
+        sorry -- Unfortunately lean is conjugate linear in first entry as opposed to second entry
+        -- and the proof was written with the assumption of conjugate linearity in right entry.
+        -- This could easily be fixed by flipping entries of all inner products
+        -- but thats too tedious as I would have to tweak proofs as well.
       obtain ⟨n, hn⟩ := exists_nat_gt (‖y‖ ^ 2)
       have : u + (1/Complex.ofReal n) • y ∈ U := by
         apply Submodule.add_mem
@@ -354,7 +355,7 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
           rw [smul_smul]
           exact Submodule.smul_mem U ((1 / n) * (1 / α)) hy'_mem
       set u_n : U := ⟨u + (1/(n : ℂ)) • y, this⟩
-      have hn_pos : (0 : ℝ) < n := by -- potentially wont need this
+      have hn_pos : (0 : ℝ) < n := by
         calc
           0 ≤ ‖y‖^2 := by exact sq_nonneg ‖y‖
           _ < n := by exact hn
@@ -407,7 +408,29 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
               simp at this
               exact this
             simp [this]
-      sorry
+      have contradiction1 : ‖x - u_n‖^2 < (sInf (Set.range fun (a : U) ↦ ‖x - a‖))^2 := by
+        calc
+          ‖x - u_n‖^2 = ‖v‖^2 - 2/n + (1/n^2)*‖y‖^2 := by exact this
+          _ < ‖v‖^2 - 2/n + (1/n^2)*n := by gcongr
+          _ = ‖v‖^2 - 1/n := by
+            field_simp
+            ring
+          _< (sInf (Set.range fun (a : U) ↦ ‖x - a‖))^2 := by
+            have : 0 < 1/(n : ℝ) := by exact one_div_pos.mpr hn_pos
+            rw [←hu.1]
+            linarith
+      have contradiction2 : (sInf (Set.range fun (a : U) ↦ ‖x - a‖))^2 ≤ ‖x - u_n‖^2 := by
+        have : sInf (Set.range fun (a : U) ↦ ‖x - a‖) ≤ ‖x - u_n‖ := by
+          apply csInf_le
+          · use 0
+            unfold lowerBounds
+            simp
+          · use u_n
+        gcongr
+        refine Real.sInf_nonneg ?_
+        rintro _ ⟨a, rfl⟩
+        exact norm_nonneg _
+      linarith
   · let P : U → Prop := fun y => ∃! v, x = y + v
     sorry
 
