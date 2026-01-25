@@ -291,11 +291,6 @@ lemma lin_subspace_convex : ConvexSet W.carrier := by
   have h2 : t • b ∈ W := by exact Submodule.smul_mem W t hb
   exact W.add_mem' h1 h2
 
--- u closest point to x in U → x-u ∈ U⟂
-lemma sub_closest_in_orth (x : H) (u : U) (h : ‖x - u‖ = sInf (Set.range fun a ↦ ‖x - a‖)) :
-  (x - u) ∈ U.carrier ⟂ := by
-  sorry
-
 -- makes calc steps easier
 lemma real_sq_eq_complex_sq (a : ℝ) : ((a : ℂ)^2).re = a^2 := by
   set x := a^2
@@ -306,6 +301,108 @@ lemma real_sq_eq_complex_sq (a : ℝ) : ((a : ℂ)^2).re = a^2 := by
       simp only [x] at this
       push_cast at this
       exact this
+
+-- u closest point to x in U → x-u ∈ U⟂
+lemma sub_closest_in_orth (x : H) (u : U) (h : ‖x - u‖ = sInf (Set.range fun (a : U) ↦ ‖x - a‖)) :
+  (x - u) ∈ U.carrier ⟂ := by
+  set v := x - u
+  by_contra h
+  unfold OrthogonalComplement at h
+  simp at h
+  obtain ⟨y', hy'_mem, hy'_ne⟩ := h
+  set α := ⟪y', v⟫_ℂ
+  set y := (1/α) • y'
+  have hy_one : ⟪y, v⟫_ℂ = 1 := by
+    simp_rw [y, inner_smul_left, α]
+    rw [one_div, mul_comm]
+    sorry -- Unfortunately lean is conjugate linear in first entry as opposed to second entry
+    -- and the proof was written with the assumption of conjugate linearity in right entry.
+    -- This could easily be fixed by flipping entries of all inner products
+    -- but thats too tedious as I would have to tweak proofs as well.
+  obtain ⟨n, hn⟩ := exists_nat_gt (‖y‖ ^ 2)
+  have : u + (1/Complex.ofReal n) • y ∈ U := by
+    apply Submodule.add_mem
+    · exact Submodule.coe_mem u
+    · unfold y
+      rw [smul_smul]
+      exact Submodule.smul_mem U ((1 / n) * (1 / α)) hy'_mem
+  set u_n : U := ⟨u + (1/(n : ℂ)) • y, this⟩
+  have hn_pos : (0 : ℝ) < n := by
+    calc
+      0 ≤ ‖y‖^2 := by exact sq_nonneg ‖y‖
+      _ < n := by exact hn
+  have : ‖x - u_n‖^2 = ‖v‖^2 - 2/n + (1/n^2) * ‖y‖^2 := by
+    have : (starRingEnd ℂ) (1/(n : ℂ)) = 1/n := by
+          rw [RCLike.conj_eq_iff_real]
+          use (1/n)
+          simp
+    calc
+      ‖x - u_n‖^2 = ‖v - (1/(n : ℂ))•y‖^2 := by
+        simp only [u_n, v]
+        rw [sub_add_eq_sub_sub]
+      _ = Complex.re ⟪v - (1/(n : ℂ))•y, v - (1/(n : ℂ))•y⟫_ℂ := by
+        rw [inner_self_eq_norm_sq_to_K]
+        exact (real_sq_eq_complex_sq ‖v - (1/(n : ℂ)) • y‖).symm
+      _ = Complex.re (⟪v, v⟫_ℂ - ⟪v, ((1 : ℂ) / (n : ℂ)) • y⟫_ℂ -
+        ⟪(1/(n : ℂ))•y, v⟫_ℂ +
+        ⟪(1/(n : ℂ))•y, (1/(n : ℂ))•y⟫_ℂ) := by
+        rw [inner_sub_sub_self]
+      _ = Complex.re ⟪v, v⟫_ℂ - Complex.re ⟪v, (1/(n : ℂ))•y⟫_ℂ -
+        Complex.re ⟪(1/(n : ℂ))•y, v⟫_ℂ +
+        Complex.re ⟪(1/(n : ℂ))•y, (1/(n : ℂ))•y⟫_ℂ := by
+        simp only [one_div, Complex.add_re, Complex.sub_re]
+      _ = Complex.re ⟪v, v⟫_ℂ - Complex.re ⟪v, (1/(n : ℂ))•y⟫_ℂ -
+        Complex.re ⟪(1/(n : ℂ))•y, v⟫_ℂ +
+        Complex.re ((1/(n : ℂ))^2*⟪y, y⟫_ℂ) := by
+        conv_lhs =>
+          arg 2
+          arg 1
+          rw [inner_smul_left, inner_smul_right, ←mul_assoc, this]
+        field_simp
+      _ = ‖v‖^2 - 2/n + (1/n^2) * ‖y‖^2 := by
+        rw [inner_self_eq_norm_sq_to_K, inner_self_eq_norm_sq_to_K]
+        rw [←real_sq_eq_complex_sq ‖v‖, ←real_sq_eq_complex_sq ‖y‖]
+        rw [inner_smul_left, inner_smul_right, this, ←inner_conj_symm, hy_one]
+        have : (starRingEnd ℂ) 1 = 1 := by exact Complex.conj_eq_iff_re.mpr rfl
+        rw [this]
+        ring_nf
+        have : (n : ℂ)⁻¹.re = (n : ℝ)⁻¹ := by simp
+        rw [this]
+        have : (n : ℝ)⁻¹^2 = ((n : ℂ)⁻¹^2).re := by
+          let  := (Complex.ofReal_re ((n : ℝ)⁻¹^2)).symm
+          simp at this
+          simp
+          exact this
+        rw [this]
+        simp
+        have : ((n : ℂ)^2).im = 0 := by
+          let := Complex.ofReal_im ((n : ℝ)^2)
+          simp at this
+          exact this
+        simp [this]
+  have contradiction1 : ‖x - u_n‖^2 < (sInf (Set.range fun (a : U) ↦ ‖x - a‖))^2 := by
+    calc
+      ‖x - u_n‖^2 = ‖v‖^2 - 2/n + (1/n^2)*‖y‖^2 := by exact this
+      _ < ‖v‖^2 - 2/n + (1/n^2)*n := by gcongr
+      _ = ‖v‖^2 - 1/n := by
+        field_simp
+        ring
+      _< (sInf (Set.range fun (a : U) ↦ ‖x - a‖))^2 := by
+        have : 0 < 1/(n : ℝ) := by exact one_div_pos.mpr hn_pos
+        rw [←h]
+        linarith
+  have contradiction2 : (sInf (Set.range fun (a : U) ↦ ‖x - a‖))^2 ≤ ‖x - u_n‖^2 := by
+    have : sInf (Set.range fun (a : U) ↦ ‖x - a‖) ≤ ‖x - u_n‖ := by
+      apply csInf_le
+      · use 0
+        unfold lowerBounds
+        simp
+      · use u_n
+    gcongr
+    refine Real.sInf_nonneg ?_
+    rintro _ ⟨a, rfl⟩
+    exact norm_nonneg _
+  linarith
 
 -- Thm 5.20: For U closed linear subspace, H = U ⨁ U^⟂ (requires Prop 5.16)
 theorem orthogonal_decompose (h : IsClosed U.carrier) :
@@ -328,103 +425,7 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
       · grind
       · rintro ⟨y, hy⟩ rfl
         simp
-    · by_contra h
-      unfold OrthogonalComplement at h
-      simp at h
-      obtain ⟨y', hy'_mem, hy'_ne⟩ := h
-      set α := ⟪y', v⟫_ℂ
-      set y := (1/α) • y'
-      have hy_one : ⟪y, v⟫_ℂ = 1 := by
-        simp_rw [y, inner_smul_left, α]
-        rw [one_div, mul_comm]
-        sorry -- Unfortunately lean is conjugate linear in first entry as opposed to second entry
-        -- and the proof was written with the assumption of conjugate linearity in right entry.
-        -- This could easily be fixed by flipping entries of all inner products
-        -- but thats too tedious as I would have to tweak proofs as well.
-      obtain ⟨n, hn⟩ := exists_nat_gt (‖y‖ ^ 2)
-      have : u + (1/Complex.ofReal n) • y ∈ U := by
-        apply Submodule.add_mem
-        · exact Submodule.coe_mem u
-        · unfold y
-          rw [smul_smul]
-          exact Submodule.smul_mem U ((1 / n) * (1 / α)) hy'_mem
-      set u_n : U := ⟨u + (1/(n : ℂ)) • y, this⟩
-      have hn_pos : (0 : ℝ) < n := by
-        calc
-          0 ≤ ‖y‖^2 := by exact sq_nonneg ‖y‖
-          _ < n := by exact hn
-      have : ‖x - u_n‖^2 = ‖v‖^2 - 2/n + (1/n^2) * ‖y‖^2 := by
-        have : (starRingEnd ℂ) (1/(n : ℂ)) = 1/n := by
-              rw [RCLike.conj_eq_iff_real]
-              use (1/n)
-              simp
-        calc
-          ‖x - u_n‖^2 = ‖v - (1/(n : ℂ))•y‖^2 := by
-            simp only [u_n, v]
-            rw [sub_add_eq_sub_sub]
-          _ = Complex.re ⟪v - (1/(n : ℂ))•y, v - (1/(n : ℂ))•y⟫_ℂ := by
-            rw [inner_self_eq_norm_sq_to_K]
-            exact (real_sq_eq_complex_sq ‖v - (1/(n : ℂ)) • y‖).symm
-          _ = Complex.re (⟪v, v⟫_ℂ - ⟪v, ((1 : ℂ) / (n : ℂ)) • y⟫_ℂ -
-            ⟪(1/(n : ℂ))•y, v⟫_ℂ +
-            ⟪(1/(n : ℂ))•y, (1/(n : ℂ))•y⟫_ℂ) := by
-            rw [inner_sub_sub_self]
-          _ = Complex.re ⟪v, v⟫_ℂ - Complex.re ⟪v, (1/(n : ℂ))•y⟫_ℂ -
-            Complex.re ⟪(1/(n : ℂ))•y, v⟫_ℂ +
-            Complex.re ⟪(1/(n : ℂ))•y, (1/(n : ℂ))•y⟫_ℂ := by
-            simp only [one_div, Complex.add_re, Complex.sub_re]
-          _ = Complex.re ⟪v, v⟫_ℂ - Complex.re ⟪v, (1/(n : ℂ))•y⟫_ℂ -
-            Complex.re ⟪(1/(n : ℂ))•y, v⟫_ℂ +
-            Complex.re ((1/(n : ℂ))^2*⟪y, y⟫_ℂ) := by
-            conv_lhs =>
-              arg 2
-              arg 1
-              rw [inner_smul_left, inner_smul_right, ←mul_assoc, this]
-            field_simp
-          _ = ‖v‖^2 - 2/n + (1/n^2) * ‖y‖^2 := by
-            rw [inner_self_eq_norm_sq_to_K, inner_self_eq_norm_sq_to_K]
-            rw [←real_sq_eq_complex_sq ‖v‖, ←real_sq_eq_complex_sq ‖y‖]
-            rw [inner_smul_left, inner_smul_right, this, ←inner_conj_symm, hy_one]
-            have : (starRingEnd ℂ) 1 = 1 := by exact Complex.conj_eq_iff_re.mpr rfl
-            rw [this]
-            ring_nf
-            have : (n : ℂ)⁻¹.re = (n : ℝ)⁻¹ := by simp
-            rw [this]
-            have : (n : ℝ)⁻¹^2 = ((n : ℂ)⁻¹^2).re := by
-              let  := (Complex.ofReal_re ((n : ℝ)⁻¹^2)).symm
-              simp at this
-              simp
-              exact this
-            rw [this]
-            simp
-            have : ((n : ℂ)^2).im = 0 := by
-              let := Complex.ofReal_im ((n : ℝ)^2)
-              simp at this
-              exact this
-            simp [this]
-      have contradiction1 : ‖x - u_n‖^2 < (sInf (Set.range fun (a : U) ↦ ‖x - a‖))^2 := by
-        calc
-          ‖x - u_n‖^2 = ‖v‖^2 - 2/n + (1/n^2)*‖y‖^2 := by exact this
-          _ < ‖v‖^2 - 2/n + (1/n^2)*n := by gcongr
-          _ = ‖v‖^2 - 1/n := by
-            field_simp
-            ring
-          _< (sInf (Set.range fun (a : U) ↦ ‖x - a‖))^2 := by
-            have : 0 < 1/(n : ℝ) := by exact one_div_pos.mpr hn_pos
-            rw [←hu.1]
-            linarith
-      have contradiction2 : (sInf (Set.range fun (a : U) ↦ ‖x - a‖))^2 ≤ ‖x - u_n‖^2 := by
-        have : sInf (Set.range fun (a : U) ↦ ‖x - a‖) ≤ ‖x - u_n‖ := by
-          apply csInf_le
-          · use 0
-            unfold lowerBounds
-            simp
-          · use u_n
-        gcongr
-        refine Real.sInf_nonneg ?_
-        rintro _ ⟨a, rfl⟩
-        exact norm_nonneg _
-      linarith
+    · exact @sub_closest_in_orth _ _ _ _ _ x u hu.1
   constructor
   · exact huv
   · let P : U → Prop := fun y => ∃! v : U.carrier⟂, x = y + v
