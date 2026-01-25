@@ -307,12 +307,6 @@ lemma real_sq_eq_complex_sq (a : ℝ) : ((a : ℂ)^2).re = a^2 := by
       push_cast at this
       exact this
 
--- To make uniqueness proofs easier
-lemma general_uniqueness {α : Type*} (s : Set α) (P : s → Prop)
-(u : s) (hPu : P u) (h : ∀ x₁, ∀ x₂, P x₁ ∧ P x₂ → x₁ = x₂) : ∀ y, P y → y = u := by
-  intro y hPy
-  exact h y u ⟨hPy, hPu⟩
-
 -- Thm 5.20: For U closed linear subspace, H = U ⨁ U^⟂ (requires Prop 5.16)
 theorem orthogonal_decompose (h : IsClosed U.carrier) :
   ∀ x : H, ∃! (u : U), ∃! (v : U.carrier ⟂), x = u + v := by
@@ -325,8 +319,8 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
   dsimp only [Submodule.carrier_eq_coe, SetLike.coe_sort_coe] at hu
   use u
   dsimp
-  constructor
-  · set v := x - u
+  have huv : ∃! v : U.carrier⟂, x = u + v := by
+    set v := x - u
     use ⟨v, ?_⟩
     · dsimp
       unfold v
@@ -431,8 +425,50 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
         rintro _ ⟨a, rfl⟩
         exact norm_nonneg _
       linarith
-  · let P : U → Prop := fun y => ∃! v, x = y + v
-    sorry
+  constructor
+  · exact huv
+  · let P : U → Prop := fun y => ∃! v : U.carrier⟂, x = y + v
+    have : ∀ u₁ : U, ∀ u₂ : U, (P u₁ ∧ P u₂ → u₁ = u₂) := by
+      intro u₁ u₂ ⟨hu₁, hu₂⟩
+      obtain ⟨v₁, h₁, _⟩ := hu₁
+      obtain ⟨v₂, h₂, _⟩ := hu₂
+      have heq : (u₁ : H) - u₂ = v₂ - v₁ := by
+        calc
+          u₁ - u₂ = (x - v₁) - (x - v₂) := by
+            conv_rhs =>
+              arg 2
+              rw [h₂]
+            rw [h₁]
+            simp
+          _ = v₂ - v₁ := by simp
+      have hinner : ⟪(u₁ : H) - u₂, v₂ - v₁⟫_ℂ = 0 := by
+        have hu_mem : (u₁ : H) - u₂ ∈ U := by exact Submodule.sub_mem U u₁.2 u₂.2
+        have hv_mem : (v₂ : H) - v₁ ∈ U⟂ := by
+          have step1 : (v₁ : H) ∈ U⟂ := v₁.2
+          have step2 : (v₂ : H) ∈ U⟂ := v₂.2
+          apply Submodule.sub_mem
+          · exact step2
+          · exact step1
+        exact hv_mem (↑u₁ - ↑u₂) hu_mem
+      have hnorm : ‖u₁ - u₂‖ = 0 := by
+        apply sq_eq_zero_iff.mp
+        calc
+          ‖u₁ - u₂‖^2 = Complex.re ⟪(u₁ : H) - u₂, u₁ - u₂⟫_ℂ := by
+            rw [@inner_self_eq_norm_sq_to_K ℂ _ _ _ _ ((u₁ : H) - u₂), ←real_sq_eq_complex_sq]
+            simp
+          _ = Complex.re ⟪(u₁ : H) - u₂, (v₂ : H) - v₁⟫_ℂ := by
+            rw [heq]
+          _ = 0 := by
+            exact
+            (AddSemiconjBy.eq_zero_iff (Complex.re 0)
+                  (congrFun (congrArg HAdd.hAdd (congrArg Complex.re (id (Eq.symm hinner))))
+                    (Complex.re 0))).mp
+              rfl
+      exact norm_sub_eq_zero_iff.mp hnorm
+    have unique : ∀ y, P y → y = u := by
+      intro y hy
+      exact (this y u ⟨hy, huv⟩)
+    exact unique
 
 def Projection (P : H →L[ℂ] H) : Prop :=
   ∀ x : H, P (P x) = P x
