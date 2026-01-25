@@ -343,7 +343,9 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
       have hy_one : ⟪y, v⟫_ℂ = 1 := by
         simp_rw [y, inner_smul_left, α]
         rw [one_div, mul_comm]
-        sorry -- star ring??
+        sorry -- unfortunately lean is conjugate linear in first entry as opposed to second entry
+        -- this could easily be fixed by writing all the inner products the other way around
+        -- but thats too tedious.
       obtain ⟨n, hn⟩ := exists_nat_gt (‖y‖ ^ 2)
       have : u + (1/Complex.ofReal n) • y ∈ U := by
         apply Submodule.add_mem
@@ -352,7 +354,15 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
           rw [smul_smul]
           exact Submodule.smul_mem U ((1 / n) * (1 / α)) hy'_mem
       set u_n : U := ⟨u + (1/(n : ℂ)) • y, this⟩
+      have hn_pos : (0 : ℝ) < n := by -- potentially wont need this
+        calc
+          0 ≤ ‖y‖^2 := by exact sq_nonneg ‖y‖
+          _ < n := by exact hn
       have : ‖x - u_n‖^2 = ‖v‖^2 - 2/n + (1/n^2) * ‖y‖^2 := by
+        have : (starRingEnd ℂ) (1/(n : ℂ)) = 1/n := by
+              rw [RCLike.conj_eq_iff_real]
+              use (1/n)
+              simp
         calc
           ‖x - u_n‖^2 = ‖v - (1/(n : ℂ))•y‖^2 := by
             simp only [u_n, v]
@@ -368,12 +378,35 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
             Complex.re ⟪(1/(n : ℂ))•y, v⟫_ℂ +
             Complex.re ⟪(1/(n : ℂ))•y, (1/(n : ℂ))•y⟫_ℂ := by
             simp only [one_div, Complex.add_re, Complex.sub_re]
+          _ = Complex.re ⟪v, v⟫_ℂ - Complex.re ⟪v, (1/(n : ℂ))•y⟫_ℂ -
+            Complex.re ⟪(1/(n : ℂ))•y, v⟫_ℂ +
+            Complex.re ((1/(n : ℂ))^2*⟪y, y⟫_ℂ) := by
+            conv_lhs =>
+              arg 2
+              arg 1
+              rw [inner_smul_left, inner_smul_right, ←mul_assoc, this]
+            field_simp
           _ = ‖v‖^2 - 2/n + (1/n^2) * ‖y‖^2 := by
             rw [inner_self_eq_norm_sq_to_K, inner_self_eq_norm_sq_to_K]
-            rw [norm_smul (1/(n : ℂ)) y]
-            --rw [real_sq_eq_complex_sq ‖(1/(n : ℂ))•y‖]
-            rw [←real_sq_eq_complex_sq ‖v‖]
-            sorry
+            rw [←real_sq_eq_complex_sq ‖v‖, ←real_sq_eq_complex_sq ‖y‖]
+            rw [inner_smul_left, inner_smul_right, this, ←inner_conj_symm, hy_one]
+            have : (starRingEnd ℂ) 1 = 1 := by exact Complex.conj_eq_iff_re.mpr rfl
+            rw [this]
+            ring_nf
+            have : (n : ℂ)⁻¹.re = (n : ℝ)⁻¹ := by simp
+            rw [this]
+            have : (n : ℝ)⁻¹^2 = ((n : ℂ)⁻¹^2).re := by
+              let  := (Complex.ofReal_re ((n : ℝ)⁻¹^2)).symm
+              simp at this
+              simp
+              exact this
+            rw [this]
+            simp
+            have : ((n : ℂ)^2).im = 0 := by
+              let := Complex.ofReal_im ((n : ℝ)^2)
+              simp at this
+              exact this
+            simp [this]
       sorry
   · let P : U → Prop := fun y => ∃! v, x = y + v
     sorry
