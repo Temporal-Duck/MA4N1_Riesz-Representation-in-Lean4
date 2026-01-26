@@ -651,7 +651,32 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
 
     -- Show uniqueness of y
     have uniqueness : ∀ y' : H,
-      (∀ x : H, G x = ⟪y', x⟫_ℂ) ∧ OperatorNorm G = ‖y'‖ → y' = y := by sorry
+      (∀ x : H, G x = ⟪y', x⟫_ℂ) ∧ OperatorNorm G = ‖y'‖ → y' = y :=
+      let s : Set ℝ := Set.image (fun x : H => ‖G x‖) {x : H | ‖x‖ ≤ 1}
+
+      have hy_norm : ‖y‖ = ‖G z‖ := by
+        simp [y, norm_smul, hz_norm]
+
+      have h_le : OperatorNorm G ≤ ‖y‖ := by
+        unfold OperatorNorm
+
+        refine csSup_le ?hs_ne ?bound
+        · -- Nonempty
+          refine ⟨0, ?_⟩
+          refine ⟨(0 : H), ?_, by simp⟩
+          simp
+        · intro b hb
+          rcases hb with ⟨x, hx, rfl⟩
+          -- Cauchy–Schwarz
+          have hcs : ‖G x‖ ≤ ‖y‖ * ‖x‖ := by
+            simpa [G_eq_inner x] using (norm_inner_le_norm y x)
+          have hmul : ‖y‖ * ‖x‖ ≤ ‖y‖ := by
+            exact mul_le_of_le_one_right (norm_nonneg y) hx
+          exact le_trans hcs hmul
+
+
+      sorry
+
 
     use y, ⟨G_eq_inner, norm_eq⟩, uniqueness
 
