@@ -538,7 +538,7 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
       have : G x₀ = 0 := by
         calc G x₀ = G ((u₀ : H) + (v₀ : H)) := by rw [← hdecomp]
         _ = G (u₀ : H) + G (v₀ : H) := by exact ContinuousLinearMap.map_add G u₀ v₀
-        _ = 0 + 0 := by simp [hu₀_in_U, hcontra]
+        _ = 0 + 0 := by simp [hcontra]
         _ = 0 := zero_add 0
       exact hx₀ this
 
