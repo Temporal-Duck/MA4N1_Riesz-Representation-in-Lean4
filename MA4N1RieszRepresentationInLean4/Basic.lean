@@ -19,23 +19,9 @@ def BoundedLinearOperator (A : V →ₗ[ℂ] ℂ) : Prop :=
 
 -- Thm: Cauchy-Schwartz inequality
 theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_ℂ‖ ≤ ‖x‖ * ‖y‖ := by
-  -- We want to use the `inner_mul_inner_self_le` lemma
-  -- from Mathlib (as it already does most of the work):
-  -- inner_mul_inner_self_le : ‖⟪x, y⟫‖ * ‖⟪y, x⟫‖ ≤ re ⟪x, x⟫ * re ⟪y, y⟫
-  -- using have to specify all the typeclass instances explicitly so don't have to do it later
-  have h  := @inner_mul_inner_self_le ℂ _ _ _ _ x y
+  simpa using (norm_inner_le_norm x y)
 
-  -- norms of inner products are symmetric, and re ⟪x,x⟫ = ‖x‖^2
-  -- Rewrite the `inner_mul_inner_self_le` inequality using just norms
-  have sq_ineq : ‖⟪x, y⟫_ℂ‖ ^ 2 ≤ ‖x‖ ^ 2 * ‖y‖ ^ 2 := by
-    have h' := by simpa [norm_inner_symm] using h
-    simpa [pow_two, ← norm_sq_eq_re_inner x, ← norm_sq_eq_re_inner y] using h'
-  -- Take square-roots and simplify sqrt-of-square to get the result
-  calc
-      ‖⟪x, y⟫_ℂ‖ = √(‖⟪x, y⟫_ℂ‖ ^ 2) := by simp [Real.sqrt_sq (norm_nonneg _)]
-      _ ≤ √(‖x‖ ^ 2 * ‖y‖ ^ 2) := Real.sqrt_le_sqrt sq_ineq
-      _ = √(‖x‖ ^ 2) * √(‖y‖ ^ 2) := by rw [Real.sqrt_mul (sq_nonneg ‖x‖) (‖y‖ ^ 2)]
-      _ = ‖x‖ * ‖y‖ := by simp
+
 -- Prop 4.7
 theorem parallelogram (x y : V) : ⟪x+y, x+y⟫_ℂ + ⟪x-y, x-y⟫_ℂ = 2*⟪x, x⟫_ℂ + 2*⟪y, y⟫_ℂ := by
   rw [inner_add_right, inner_add_left, inner_add_left]
