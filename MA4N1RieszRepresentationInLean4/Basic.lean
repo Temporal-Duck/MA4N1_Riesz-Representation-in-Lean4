@@ -621,10 +621,13 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
 
   -- flip to ⟪z, u⟫ = 0
         have huz : ⟪z, (u : H)⟫_ℂ = 0 := by
-          simpa [inner_eq_zero_symm] using huz'
-  -- now pull scalar out of the left slot and finish
-        simp [inner_smul_left, huz]
+          calc
+            ⟪z, (u : H)⟫_ℂ = (starRingEnd ℂ) (⟪(u : H), z⟫_ℂ) := by
+              simp [inner_conj_symm]
+            _ = (starRingEnd ℂ) 0 := by rw [huz']
+            _ = 0 := by simp
 
+        simp [inner_smul_left, huz]
 
       have inner_eq : ⟪y, x⟫_ℂ = ⟪(starRingEnd ℂ) (G z) • z, (v : H)⟫_ℂ := by
         rw [final, inner_add_right, remove_u, zero_add]
