@@ -17,9 +17,37 @@ example (x : V) : ⟪x, x⟫_ℂ = ‖x‖^2 := by exact inner_self_eq_norm_sq_t
 def BoundedLinearOperator (A : V →ₗ[ℂ] ℂ) : Prop :=
   ∃ (M : ℝ), 0 ≤ M ∧ ∀ x : V, ‖A x‖ ≤ M * ‖x‖
 
--- Thm: Cauchy-Schwartz inequality
 theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_ℂ‖ ≤ ‖x‖ * ‖y‖ := by
-  simpa using (norm_inner_le_norm x y)
+  -- Start from: ‖⟪x,y⟫‖ * ‖⟪y,x⟫‖ ≤ re⟪x,x⟫ * re⟪y,y⟫
+  have h := @inner_mul_inner_self_le ℂ V _ _ _ x y
+
+  -- rewrite re⟪x,x⟫ and re⟪y,y⟫ as ‖x‖^2 and ‖y‖^2
+  have hx : (⟪x, x⟫_ℂ).re = ‖x‖ ^ 2 := by
+    simpa using (norm_sq_eq_re_inner (𝕜 := ℂ) x).symm
+  have hy : (⟪y, y⟫_ℂ).re = ‖y‖ ^ 2 := by
+    simpa using (norm_sq_eq_re_inner (𝕜 := ℂ) y).symm
+
+  -- squared inequality
+  have sq_ineq : ‖⟪x, y⟫_ℂ‖ ^ 2 ≤ ‖x‖ ^ 2 * ‖y‖ ^ 2 := by
+    have h' :
+        ‖⟪x, y⟫_ℂ‖ * ‖⟪x, y⟫_ℂ‖ ≤ (⟪x, x⟫_ℂ).re * (⟪y, y⟫_ℂ).re := by
+      simpa [norm_inner_symm] using h
+    have h'' :
+        ‖⟪x, y⟫_ℂ‖ * ‖⟪x, y⟫_ℂ‖ ≤ ‖x‖ ^ 2 * ‖y‖ ^ 2 := by
+      simpa [hx, hy] using h'
+    simpa [pow_two] using h''
+
+  calc
+    ‖⟪x, y⟫_ℂ‖ = Real.sqrt (‖⟪x, y⟫_ℂ‖ ^ 2) := by
+      simp [Real.sqrt_sq (norm_nonneg _)]
+    _ ≤ Real.sqrt (‖x‖ ^ 2 * ‖y‖ ^ 2) := by
+      exact Real.sqrt_le_sqrt sq_ineq
+    _ = Real.sqrt ((‖x‖ * ‖y‖) ^ 2) := by
+      congr 1
+      ring
+    _ = ‖x‖ * ‖y‖ := by
+      have hxy : 0 ≤ ‖x‖ * ‖y‖ := mul_nonneg (norm_nonneg x) (norm_nonneg y)
+      simp [Real.sqrt_sq hxy]
 
 
 -- Prop 4.7
