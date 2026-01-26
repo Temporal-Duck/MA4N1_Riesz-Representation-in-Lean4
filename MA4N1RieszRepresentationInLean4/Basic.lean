@@ -488,7 +488,8 @@ def DualH := H →L[ℂ] ℂ
 -- Example 6.10 + Claim
 -- Thm: Riesz Representation Theorem
 
-
+-- Due to Lean being conjugate linear in first entry of inner product,
+-- we have to write riesz in this way
 theorem riesz_rep (G : H →L[ℂ] ℂ) :
   ∃! y : H,
     (∀ x : H, G x = ⟪y, x⟫_ℂ) ∧
@@ -543,9 +544,6 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
       exact hx₀ this
 
     -- Show that U⟂ is 1-dimensional
-
-    -- Need to check if there is a problem using the dot product rather actual inner product?
-    --Should be okay to change later if needed
     have dim_orth_one : ∃ z : H, (∀ w ∈ U.carrier ⟂, ∃ c : ℂ, (w : H) = c • z) ∧ ‖z‖ = 1 := by sorry
 
     obtain ⟨z, hz_span, hz_norm⟩ := dim_orth_one
