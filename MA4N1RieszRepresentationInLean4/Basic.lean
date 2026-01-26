@@ -36,7 +36,6 @@ theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_ℂ‖ ≤ ‖x‖ * ‖y‖ 
       _ ≤ √(‖x‖ ^ 2 * ‖y‖ ^ 2) := Real.sqrt_le_sqrt sq_ineq
       _ = √(‖x‖ ^ 2) * √(‖y‖ ^ 2) := by rw [Real.sqrt_mul (sq_nonneg ‖x‖) (‖y‖ ^ 2)]
       _ = ‖x‖ * ‖y‖ := by simp
-
 -- Prop 4.7
 theorem parallelogram (x y : V) : ⟪x+y, x+y⟫_ℂ + ⟪x-y, x-y⟫_ℂ = 2*⟪x, x⟫_ℂ + 2*⟪y, y⟫_ℂ := by
   rw [inner_add_right, inner_add_left, inner_add_left]
@@ -677,10 +676,49 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
 
   -- Case G = 0
   · push_neg at h
+    -- G is identically 0
     have hG0 : ∀ x : H, G x = 0 := by
       intro x
-      exact h x -----remove some of this
-    use 0, ⟨fun x => by simp [h], by sorry⟩
-    intro y' ⟨hy'_eq, _⟩
-    sorry
+      exact h x
+
+    -- compute OperatorNorm G = 0
+    have hOp0 : OperatorNorm G = 0 := by
+      unfold OperatorNorm
+      -- show the image is exactly {0}
+      have himage :
+          Set.image (fun x : H => ‖G x‖) {x : H | ‖x‖ ≤ 1} = ({0} : Set ℝ) := by
+        ext r
+        constructor
+        · intro hr
+          rcases hr with ⟨x, hx, rfl⟩
+          simp [hG0 x]
+        · intro hr
+          -- r = 0, achieved at x = 0
+          have : r = 0 := by simpa using hr
+          subst this
+          refine ⟨(0 : H), ?_, by simp [hG0 (0 : H)]⟩
+          simp
+      -- now sSup {0} = 0
+      simp [himage]
+
+    -- existence: y = 0 works
+    refine ⟨(0 : H), ?_, ?_⟩
+    · constructor
+      · intro x
+        simp [hG0 x]
+      · -- OperatorNorm G = ‖0‖
+        simp [hOp0]
+
+    -- uniqueness: any y' representing 0 must be 0
+    · intro y' hy'
+      rcases hy' with ⟨hy'_eq, _⟩
+      -- from G=0 and representation, ⟪y', x⟫ = 0 for all x
+      have h0 : ∀ x : H, ⟪y', x⟫_ℂ = 0 := by
+        intro x
+        have : G x = 0 := hG0 x
+        -- hy'_eq x : G x = ⟪y', x⟫
+        simpa [hy'_eq x] using this
+      -- plug x = y' to get y' = 0
+      have : y' = 0 := (inner_self_eq_zero).1 (h0 y')
+      simp [this]
     --- End of riesz_rep theorem
