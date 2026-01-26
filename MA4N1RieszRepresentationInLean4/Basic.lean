@@ -491,7 +491,7 @@ def DualH := H →L[ℂ] ℂ
 
 theorem riesz_rep (G : H →L[ℂ] ℂ) :
   ∃! y : H,
-    (∀ x : H, G x = ⟪x , y⟫_ℂ) ∧
+    (∀ x : H, G x = ⟪y, x⟫_ℂ) ∧
     OperatorNorm G  = ‖y‖ := by
 
   -- Split into cases G = 0 and G ≠ 0
@@ -549,10 +549,10 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
 
     obtain ⟨z, hz_span, hz_norm⟩ := dim_orth_one
 
-    let y := G z • z
+    let y := (starRingEnd ℂ) (G z) • z
 
     -- Show that G(x) = ⟪x, y⟫ for all x
-    have G_eq_inner : ∀ x : H, G x = ⟪x, y⟫_ℂ := by
+    have G_eq_inner : ∀ x : H, G x = ⟪y, x⟫_ℂ := by
       intro x
       -- Decompose x using orthogonal_decompose
       have ⟨u, hu_eq, hu_unique⟩ := orthogonal_decompose U U_closed x
@@ -570,40 +570,34 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
       have Gx_eq' : G x = 0 + G (v : H) := by
         rw [Gx_eq, hu_in_U]
       have Gx_eq'' : v = c • z := by exact hc_span
-      have final : ⟪x, y⟫_ℂ = ⟪(u : H) + (v : H), G z • z⟫_ℂ := by
+      have final : ⟪y, x⟫_ℂ = ⟪(starRingEnd ℂ) (G z) • z, (u : H) + (v : H)⟫_ℂ := by
         rw [hx_decomp]
-      have remove_u : ⟪(u : H), G z • z⟫_ℂ = 0 := by
+      have remove_u : ⟪(starRingEnd ℂ) (G z) • z, (u : H)⟫_ℂ = 0 := by
         sorry
-      have inner_eq : ⟪x, y⟫_ℂ = ⟪(v : H), G z • z⟫_ℂ := by
-        rw [final, inner_add_left, remove_u, zero_add]
-      have final' : ⟪x, y⟫_ℂ = G x := by
+      have inner_eq : ⟪y, x⟫_ℂ = ⟪(starRingEnd ℂ) (G z) • z, (v : H)⟫_ℂ := by
+        rw [final, inner_add_right, remove_u, zero_add]
+      have final' : ⟪y, x⟫_ℂ = G x := by
         rw [inner_eq]
         rw [Gx_eq'']
-        rw [inner_smul_right, inner_smul_left]
-        simp_rw [inner_self_eq_norm_sq_to_K]
+        rw [inner_smul_left, inner_smul_right]
+        rw [inner_self_eq_norm_sq_to_K]
         rw [hz_norm]
         simp
         have rew_1 : G (v : H) = c * G z := by
           rw [Gx_eq'']
           simp_rw [ContinuousLinearMap.map_smul]
           simp
-        -- Currently using the fact that c is real which is not allowed
-        have cheat : c = (starRingEnd ℂ) c :=
-          sorry
-        rw [mul_comm, cheat.symm, ← rew_1]
+        rw [mul_comm, rew_1.symm]
         rw [Gx_eq']
         simp
-
-
-      sorry
-      -- Use that u ∈ U so G(u)=0, v = c•z, then compute ⟪x, y⟫
+      exact final'.symm
 
     -- Show that ‖G‖_op = ‖y‖
     have norm_eq : OperatorNorm G = ‖y‖ := by sorry
 
     -- Show uniqueness of y
     have uniqueness : ∀ y' : H,
-      (∀ x : H, G x = ⟪x, y'⟫_ℂ) ∧ OperatorNorm G = ‖y'‖ → y' = y := by sorry
+      (∀ x : H, G x = ⟪y', x⟫_ℂ) ∧ OperatorNorm G = ‖y'‖ → y' = y := by sorry
 
     use y, ⟨G_eq_inner, norm_eq⟩, uniqueness
 
