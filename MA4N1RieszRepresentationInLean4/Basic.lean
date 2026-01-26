@@ -547,6 +547,48 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
     have dim_orth_one : ∃ z : H, (∀ w ∈ U.carrier ⟂, ∃ c : ℂ, (w : H) = c • z) ∧ ‖z‖ = 1 := by sorry
 
     obtain ⟨z, hz_span, hz_norm⟩ := dim_orth_one
+    -- The below code is for remove_u
+    -- Derive hz_in_orth : z ∈ Uᗮ from v₀ ∈ Uᗮ and v₀ = c₀ • z
+    -- v₀ ≠ 0 since G v₀ ≠ 0
+    have v₀_ne0 : (v₀ : H) ≠ 0 := by
+      intro hv
+      apply Gv₀_ne
+      simp [hv]
+
+    -- v₀ is a scalar multiple of z
+    obtain ⟨c₀, hc₀⟩ := hz_span (v₀ : H) hv₀_in_orth
+
+    -- c₀ ≠ 0, otherwise v₀ = 0
+    have c₀_ne0 : c₀ ≠ 0 := by
+      intro hc
+      apply v₀_ne0
+      simpa [hc] using hc₀
+
+    -- scale hc₀ by c₀⁻¹
+    have hz_eq' :
+        (c₀⁻¹ : ℂ) • (v₀ : H) = (c₀⁻¹ * c₀) • z := by
+      --apply (c₀⁻¹)• to both sides of hc₀ : v₀ = c₀ • z
+
+      have := congrArg (fun t : H => (c₀⁻¹ : ℂ) • t) hc₀
+      simpa [smul_smul] using this
+
+    -- explicitly get (c₀⁻¹ * c₀ : ℂ) = 1 (type-ascription avoids the "expected Type" error)
+    have hmul : (c₀⁻¹ * c₀ : ℂ) = 1 := by
+      field_simp [c₀_ne0]
+
+    -- now solve for z
+    have hz_eq : (c₀⁻¹ : ℂ) • (v₀ : H) = z := by
+      calc
+        (c₀⁻¹ : ℂ) • (v₀ : H) = (c₀⁻¹ * c₀) • z := hz_eq'
+        _ = (1 : ℂ) • z := by simp [hmul]
+        _ = z := by simp
+
+    -- conclude z ∈ Uᗮ since Uᗮ is a submodule and v₀ ∈ Uᗮ
+    have hz_in_orth : (z : H) ∈ U.carrier ⟂ := by
+      have : (c₀⁻¹ : ℂ) • (v₀ : H) ∈ U.carrier ⟂ :=
+        Submodule.smul_mem (U.carrier ⟂) (c₀⁻¹ : ℂ) hv₀_in_orth
+      simpa [hz_eq] using this
+
 
     let y := (starRingEnd ℂ) (G z) • z
 
@@ -571,8 +613,19 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
       have Gx_eq'' : v = c • z := by exact hc_span
       have final : ⟪y, x⟫_ℂ = ⟪(starRingEnd ℂ) (G z) • z, (u : H) + (v : H)⟫_ℂ := by
         rw [hx_decomp]
-      have remove_u : ⟪(starRingEnd ℂ) (G z) • z, (u : H)⟫_ℂ = 0 :=
-      by sorry
+      have remove_u :
+    ⟪(starRingEnd ℂ) (G z) • z, (u : H)⟫_ℂ = 0 := by
+  -- from z ∈ Uᗮ we get ⟪u, z⟫ = 0
+        have huz' : ⟪(u : H), z⟫_ℂ = 0 := by
+          exact hz_in_orth (u : H) hu_in_U
+
+  -- flip to ⟪z, u⟫ = 0
+        have huz : ⟪z, (u : H)⟫_ℂ = 0 := by
+          simpa [inner_eq_zero_symm] using huz'
+  -- now pull scalar out of the left slot and finish
+        simp [inner_smul_left, huz]
+
+
       have inner_eq : ⟪y, x⟫_ℂ = ⟪(starRingEnd ℂ) (G z) • z, (v : H)⟫_ℂ := by
         rw [final, inner_add_right, remove_u, zero_add]
       have final' : ⟪y, x⟫_ℂ = G x := by
