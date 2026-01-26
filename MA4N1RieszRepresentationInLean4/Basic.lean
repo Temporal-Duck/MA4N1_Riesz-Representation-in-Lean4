@@ -649,37 +649,34 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
 
     -- Show uniqueness of y
     have uniqueness : ∀ y' : H,
-      (∀ x : H, G x = ⟪y', x⟫_ℂ) ∧ OperatorNorm G = ‖y'‖ → y' = y :=
-      let s : Set ℝ := Set.image (fun x : H => ‖G x‖) {x : H | ‖x‖ ≤ 1}
+        (∀ x : H, G x = ⟪y', x⟫_ℂ) ∧ OperatorNorm G = ‖y'‖ → y' = y := by
+      intro y' hy'
+      rcases hy' with ⟨hy'_eq, _⟩
+      -- show y' - y = 0
+      have h0 : ∀ x : H, ⟪y' - y, x⟫_ℂ = 0 := by
+        intro x
+        -- ⟪y',x⟫ = ⟪y,x⟫ since both equal G x
+        have : ⟪y', x⟫_ℂ = ⟪y, x⟫_ℂ := by
+          calc
+            ⟪y', x⟫_ℂ = G x := by simp [hy'_eq x]
+            _ = ⟪y, x⟫_ℂ := by simp [G_eq_inner x]
 
-      have hy_norm : ‖y‖ = ‖G z‖ := by
-        simp [y, norm_smul, hz_norm]
-
-      have h_le : OperatorNorm G ≤ ‖y‖ := by
-        unfold OperatorNorm
-
-        refine csSup_le ?hs_ne ?bound
-        · -- Nonempty
-          refine ⟨0, ?_⟩
-          refine ⟨(0 : H), ?_, by simp⟩
-          simp
-        · intro b hb
-          rcases hb with ⟨x, hx, rfl⟩
-          -- Cauchy–Schwarz
-          have hcs : ‖G x‖ ≤ ‖y‖ * ‖x‖ := by
-            simpa [G_eq_inner x] using (norm_inner_le_norm y x)
-          have hmul : ‖y‖ * ‖x‖ ≤ ‖y‖ := by
-            exact mul_le_of_le_one_right (norm_nonneg y) hx
-          exact le_trans hcs hmul
-
-
-      sorry
-
+        -- ⟪y' - y, x⟫ = ⟪y',x⟫ - ⟪y,x⟫
+        simp [inner_sub_left, this]  -- gives 0
+      have hself : ⟪y' - y, y' - y⟫_ℂ = 0 := h0 (y' - y)
+      -- turn ⟪v,v⟫ = 0 into v = 0
+      have : y' - y = 0 := by
+        -- inner_self_eq_zero : ⟪v,v⟫ = 0 ↔ v = 0
+        exact (inner_self_eq_zero).1 hself
+      exact sub_eq_zero.mp this
 
     use y, ⟨G_eq_inner, norm_eq⟩, uniqueness
 
   -- Case G = 0
   · push_neg at h
+    have hG0 : ∀ x : H, G x = 0 := by
+      intro x
+      exact h x -----remove some of this
     use 0, ⟨fun x => by simp [h], by sorry⟩
     intro y' ⟨hy'_eq, _⟩
     sorry
