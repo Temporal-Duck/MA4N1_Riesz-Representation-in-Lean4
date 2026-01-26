@@ -647,7 +647,47 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
       exact final'.symm
 
     -- Show that ‖G‖_op = ‖y‖
-    have norm_eq : OperatorNorm G = ‖y‖ := by sorry
+    have norm_eq : OperatorNorm G = ‖y‖ := by
+      have hy_norm : ‖y‖ = ‖G z‖ := by
+        simp [y, norm_smul, hz_norm]
+
+      -- Upper bound: OperatorNorm G ≤ ‖y‖
+      have h_le : OperatorNorm G ≤ ‖y‖ := by
+        unfold OperatorNorm
+        refine csSup_le ?hs_ne ?bound
+        · -- nonempty: 0 is in the set
+          refine ⟨0, ?_⟩
+          refine ⟨(0 : H), ?_, by simp⟩
+          simp
+        · intro b hb
+          rcases hb with ⟨x, hx, rfl⟩
+          -- use YOUR Cauchy–Schwarz lemma
+          have hcs : ‖G x‖ ≤ ‖y‖ * ‖x‖ := by
+            simpa [G_eq_inner x] using (cauchy_schwartz (V := H) y x)
+          have hmul : ‖y‖ * ‖x‖ ≤ ‖y‖ := by
+            exact mul_le_of_le_one_right (norm_nonneg y) hx
+          exact le_trans hcs hmul
+
+      -- Lower bound: ‖y‖ ≤ OperatorNorm G (test the unit vector z)
+      have h_ge : ‖y‖ ≤ OperatorNorm G := by
+        unfold OperatorNorm
+        have hz_ball : ‖(z : H)‖ ≤ 1 := by
+          simp [hz_norm]
+        have hz_mem :
+            ‖G z‖ ∈ Set.image (fun x : H => ‖G x‖) {x : H | ‖x‖ ≤ 1} :=
+          Set.mem_image_of_mem (fun x : H => ‖G x‖) hz_ball
+        have : ‖G z‖ ≤ sSup (Set.image (fun x : H => ‖G x‖) {x : H | ‖x‖ ≤ 1}) := by
+          exact
+            ConditionallyCompleteLattice.le_csSup
+              (Set.image (fun x : H => ‖G x‖) {x : H | ‖x‖ ≤ 1})
+              ‖G z‖
+              (operator_cts_then_bdd (V := H) G)
+              hz_mem
+        -- rewrite ‖y‖ as ‖G z‖
+        simpa [hy_norm] using this
+
+      exact le_antisymm h_le h_ge
+
 
     -- Show uniqueness of y
     have uniqueness : ∀ y' : H,
