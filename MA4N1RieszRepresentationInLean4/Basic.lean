@@ -527,7 +527,12 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
           rw [Gx_eq'']
           simp_rw [ContinuousLinearMap.map_smul]
           simp
-        rw [mul_comm, RCLike.Complex.conj_eq_iff_real , rew_1.symm]
+        -- Currently using the fact that c is real which is not allowed
+        have cheat : c = (starRingEnd ℂ) c :=
+          sorry
+        rw [mul_comm, cheat.symm, ← rew_1]
+        rw [Gx_eq']
+        simp
 
 
       sorry
