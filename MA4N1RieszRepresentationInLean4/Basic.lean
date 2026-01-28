@@ -172,8 +172,8 @@ theorem closest_point_temp (A : Set H) (hne : A.Nonempty)
 (hclosed : IsClosed A) (hconv : ConvexSet A) :
   ∀ x : H, ∃! k : A, ‖x - k‖ = sInf (Set.range fun a : A => ‖x - a‖) := by
   intro x
-  let δ := sInf (Set.range fun a : A => ‖x - a‖)
-  let t := fun n => Classical.choose (exists_sequence x A hne n)
+  set δ := sInf (Set.range fun a : A => ‖x - a‖)
+  set t := fun n => Classical.choose (exists_sequence x A hne n)
   have : CauchySeq t := by
     apply NormedAddCommGroup.cauchySeq_iff.mpr
     intro ε hε
@@ -188,25 +188,48 @@ theorem closest_point_temp (A : Set H) (hne : A.Nonempty)
             apply Real.sInf_nonneg
             rintro _ ⟨a, rfl⟩
             exact norm_nonneg (x - a)
-          have hle : δ ≤ ‖x - (1/(2 : ℝ))•(t n + t m)‖ := by sorry
+          have hle : δ ≤ ‖x - (1/(2 : ℝ))•(t n + t m)‖ := by
+            have : (1/(2 : ℝ))•(t n + t m) ∈ A := by
+              rw [smul_add]
+              let := hconv (t n) (t m) ?_ ?_ (1/(2 : ℝ)) ?_
+              ring_nf at this -- not sure why this is yellow
+              refine this -- and this
+              · exact (Classical.choose_spec (exists_sequence x A hne n)).1
+              · exact (Classical.choose_spec (exists_sequence x A hne m)).1
+              grind
+            apply csInf_le
+            · use 0
+              unfold lowerBounds
+              simp
+            use ⟨(1/(2 : ℝ))•(t n + t m), this⟩
           exact pow_le_pow_left₀ hδ hle 2
         _ = (1/2)*‖x - t n‖^2 + (1/2)*‖x - t m‖^2 - (1/4)*‖t n - t m‖^2 := by
           have paralellogram : ‖x - t n + (x - t m)‖^2 = 2*‖x - t n‖^2 + 2*‖x - t m‖^2
             - ‖x - t n - (x - t m)‖^2 := by
             exact eq_sub_of_add_eq (parallelogram_norm (x - t n) (x - t m))
           have : x - (1/(2 : ℝ)) • (t n + t m) = (1/(2 : ℝ)) • (x - t n + (x - t m)) := by
-            sorry
+            simp_rw [←add_sub_assoc, sub_add_eq_add_sub,
+            ←two_smul ℝ, sub_eq_add_neg, add_assoc, smul_add]
+            simp
+            grind
           rw [this, norm_smul]
           have : 0 ≤ 1/(2 : ℝ) := by simp
           rw [Real.norm_of_nonneg this, mul_pow, paralellogram]
           simp
           rw [norm_sub_rev (t m) (t n)]
           ring
-        _ = (1/2)*(δ^2+1/n) + (1/2)*(δ^2+1/m)^2 - (1/4)*‖t n - t m‖^2 := by
-          sorry
-        _ = δ^2 + 1/(2*n) + 1/(2*m) - (1/4)*‖t n - t m‖^2 := by sorry
-
-    sorry
+        _ ≤ (1/2)*(δ^2+1/n) + (1/2)*(δ^2+1/m) - (1/4)*‖t n - t m‖^2 := by
+          gcongr
+          · exact (Classical.choose_spec (exists_sequence x A hne n)).2
+          exact (Classical.choose_spec (exists_sequence x A hne m)).2
+        _ = δ^2 + 1/(2*n) + 1/(2*m) - (1/4)*‖t n - t m‖^2 := by
+          grind
+    calc
+      ‖t m - t n‖ ≤ √(2/n + 2/m) := by sorry
+      _ ≤ √(4/N) := by
+        gcongr
+        sorry
+      _ < ε := by sorry
   obtain ⟨k, hk⟩ := cauchySeq_tendsto_of_complete this -- (t n → k as n → ∞)
   use ⟨k, ?_⟩
   · dsimp
