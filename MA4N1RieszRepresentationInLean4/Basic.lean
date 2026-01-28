@@ -177,22 +177,31 @@ theorem closest_point_temp (A : Set H) (hne : A.Nonempty)
   have : CauchySeq t := by
     apply NormedAddCommGroup.cauchySeq_iff.mpr
     intro ε hε
-    let N := Nat.ceil (4/(ε^2))
+    obtain ⟨N, hN⟩ := exists_nat_gt (4/(ε^2))
     use N
     intro m hm
     intro n hn
     have : δ^2 ≤ δ^2 + 1/(2*n) + 1/(2*m) - (1/4)*‖t n - t m‖^2 := by
       calc
-        δ^2 ≤ ‖x - (1/2)•(t n + t m)‖^2 := by
+        δ^2 ≤ ‖x - (1/(2 : ℝ))•(t n + t m)‖^2 := by
           have hδ : 0 ≤ δ := by
             apply Real.sInf_nonneg
             rintro _ ⟨a, rfl⟩
             exact norm_nonneg (x - a)
-          have hle : δ ≤ ‖x - (1/2)•(t n + t m)‖ := by sorry
+          have hle : δ ≤ ‖x - (1/(2 : ℝ))•(t n + t m)‖ := by sorry
           exact pow_le_pow_left₀ hδ hle 2
         _ = (1/2)*‖x - t n‖^2 + (1/2)*‖x - t m‖^2 - (1/4)*‖t n - t m‖^2 := by
-          #check parallelogram_norm (x - t n) (x - t m)
-          sorry
+          have paralellogram : ‖x - t n + (x - t m)‖^2 = 2*‖x - t n‖^2 + 2*‖x - t m‖^2
+            - ‖x - t n - (x - t m)‖^2 := by
+            exact eq_sub_of_add_eq (parallelogram_norm (x - t n) (x - t m))
+          have : x - (1/(2 : ℝ)) • (t n + t m) = (1/(2 : ℝ)) • (x - t n + (x - t m)) := by
+            sorry
+          rw [this, norm_smul]
+          have : 0 ≤ 1/(2 : ℝ) := by simp
+          rw [Real.norm_of_nonneg this, mul_pow, paralellogram]
+          simp
+          rw [norm_sub_rev (t m) (t n)]
+          ring
         _ = (1/2)*(δ^2+1/n) + (1/2)*(δ^2+1/m)^2 - (1/4)*‖t n - t m‖^2 := by
           sorry
         _ = δ^2 + 1/(2*n) + 1/(2*m) - (1/4)*‖t n - t m‖^2 := by sorry
