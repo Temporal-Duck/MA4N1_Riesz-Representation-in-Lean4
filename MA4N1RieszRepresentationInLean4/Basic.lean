@@ -189,7 +189,7 @@ theorem closest_point_temp (A : Set H) (hne : A.Nonempty)
     use N
     intro m hm
     intro n hn
-    have : δ^2 ≤ δ^2 + 1/(2*n) + 1/(2*m) - (1/4)*‖t n - t m‖^2 := by
+    have : δ^2 ≤ δ^2 + 1/(2*(n+1)) + 1/(2*(m+1)) - (1/4)*‖t n - t m‖^2 := by
       calc
         δ^2 ≤ ‖x - (1/(2 : ℝ))•(t n + t m)‖^2 := by
           have hδ : 0 ≤ δ := by
@@ -230,22 +230,50 @@ theorem closest_point_temp (A : Set H) (hne : A.Nonempty)
           gcongr
           · exact (Classical.choose_spec (exists_sequence x A hne n)).2
           exact (Classical.choose_spec (exists_sequence x A hne m)).2
-        _ ≤ (1/2)*(δ^2+1/n) + (1/2)*(δ^2+1/m) - (1/4)*‖t n - t m‖^2 := by
-          gcongr
-          · sorry -- lean includes 0 in ℕ :( need to find workaround
-          · simp
-          · sorry --""--
-          simp
-        _ = δ^2 + 1/(2*n) + 1/(2*m) - (1/4)*‖t n - t m‖^2 := by
+        _ = δ^2 + 1/(2*(n+1)) + 1/(2*(m+1)) - (1/4)*‖t n - t m‖^2 := by
           grind
+    have hε2 : 0 < 4/(ε^2) := by
+      simp
+      exact sq_pos_of_pos hε
     calc
-      ‖t m - t n‖ ≤ √(2/n + 2/m) := by
-        field_simp at this
-        sorry
+      ‖t m - t n‖ ≤ √(2/(n+1) + 2/(m+1)) := by
+        have h : ‖t n - t m‖^2 ≤ 4*(1/(2*(n+1)) + 1/(2*(m+1))) := by linarith
+        rw [mul_add, norm_sub_rev] at h
+        simp_rw [mul_one_div] at h
+        have : 4/(2*((n : ℝ)+1)) + 4/(2*((m : ℝ)+1)) = 2/(n+1) + 2/(m+1) := by grind
+        rw [this] at h
+        let := Real.sqrt_le_sqrt h
+        simp at this
+        exact this
       _ ≤ √(4/N) := by
         gcongr
-        sorry
-      _ < ε := by sorry
+        have h1 : 2/((n : ℝ)+1) ≤ 2/N := by
+          gcongr
+          · exact Std.lt_trans hε2 hN
+          have hnreal: (N : ℝ) ≤ n := by exact Nat.cast_le.mpr hn
+          have hnsucc : (n : ℝ) ≤ n + 1 := by linarith
+          linarith [hnreal, hnsucc]
+        have h2 : 2/((m : ℝ)+1) ≤ 2/N := by
+          gcongr
+          · exact Std.lt_trans hε2 hN
+          have hmreal: (N : ℝ) ≤ m := by exact Nat.cast_le.mpr hm
+          have hmsucc : (m : ℝ) ≤ m + 1 := by linarith
+          linarith [hmreal, hmsucc]
+        let := add_le_add h1 h2
+        ring_nf at this
+        ring_nf
+        exact this
+      _ < ε := by
+        let hNnonneg := Std.lt_trans hε2 hN
+        have : 0 ≤ ε := by linarith
+        rw [← Real.sqrt_sq this]
+        apply Real.sqrt_lt_sqrt
+        · field_simp
+          simp
+        field_simp at hN
+        field_simp
+        rw [mul_comm]
+        exact hN
   obtain ⟨k, hk⟩ := cauchySeq_tendsto_of_complete this -- (t n → k as n → ∞)
   use ⟨k, ?_⟩
   · dsimp
@@ -255,6 +283,11 @@ theorem closest_point_temp (A : Set H) (hne : A.Nonempty)
   · apply IsClosed.mem_of_tendsto hclosed hk
     unfold Filter.Eventually
     sorry
+
+example (a b c : ℝ) (h : a ≤ b) (h2 : 0 < a) : 0 ≤ 1/a := by
+  field_simp
+  simp
+example (n m : ℕ) : n ≤ n + 1 := by exact Nat.le_add_right n 1
 
 -- Prop 5.16: Closest point on a convex set
 theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : ConvexSet A) :
