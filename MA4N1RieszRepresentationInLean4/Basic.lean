@@ -72,12 +72,6 @@ theorem parallelogram_norm (x y : V) : ‖x+y‖^2 + ‖x-y‖^2 = 2*‖x‖^2 +
   simp_rw [this]
   exact parallelogram x y
 
--- Prop 4.10
-theorem convergence_inner (xn yn : ℕ → V) (x y : V)
-  (hxn : ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖xn n - x‖ < ε)
-  (hyn : ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖yn n - y‖ < ε) :
-  ∀ ε > 0, ∃ N, ∀ n ≥ N, ‖(⟪xn n, yn n⟫_ℂ - ⟪x, y⟫_ℂ)‖ < ε := by sorry
-
 -- Define orthogonality (polymorphic over any inner-product space)
 def Orthogonal (x y : V) : Prop := ⟪x, y⟫_ℂ = 0
 notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogonal x y
@@ -269,7 +263,7 @@ theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : Conv
 
     -- missing
 
-    linarith
+    sorry
 
 
   --build seq and its spec
