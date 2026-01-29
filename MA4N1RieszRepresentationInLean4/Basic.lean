@@ -175,8 +175,8 @@ lemma midpoint_closer_to_x (x : H) (A : Set H) (a b : A) :
   sorry
 
 
--- prop 5.16 edit - akira
-theorem closest_point_temp (A : Set H) (hne : A.Nonempty)
+-- Prop 5.16: Closest point on a convex set
+theorem closest_point (A : Set H) (hne : A.Nonempty)
 (hclosed : IsClosed A) (hconv : ConvexSet A) :
   ∀ x : H, ∃! k : A, ‖x - k‖ = sInf (Set.range fun a : A => ‖x - a‖) := by
   intro x
@@ -275,86 +275,34 @@ theorem closest_point_temp (A : Set H) (hne : A.Nonempty)
         rw [mul_comm]
         exact hN
   obtain ⟨k, hk⟩ := cauchySeq_tendsto_of_complete this -- (t n → k as n → ∞)
-  use ⟨k, ?_⟩
-  · dsimp
-    constructor
-    · sorry
-    · sorry
-  · apply IsClosed.mem_of_tendsto hclosed hk
-    unfold Filter.Eventually
-    sorry
-
-example (a b c : ℝ) (h : a ≤ b) (h2 : 0 < a) : 0 ≤ 1/a := by
-  field_simp
-  simp
-example (n m : ℕ) : n ≤ n + 1 := by exact Nat.le_add_right n 1
-
--- Prop 5.16: Closest point on a convex set
-theorem closest_point (A : Set H) (h0 : A.Nonempty) (h1 : IsClosed A) (h2 : ConvexSet A) :
-  ∀ x : H, ∃! k : A, ‖x - (k : H)‖ = sInf (Set.range fun a : A => ‖x - (a : H)‖) := by
-  intro x
-  -- S = {‖x - a‖ | a ∈ A}
-  let δ := sInf (Set.range fun a : A => ‖x - (a : H)‖)
-
-  have δ_nonneg : 0 ≤ δ := by
-    apply Real.sInf_nonneg
-    rintro _ ⟨a, rfl⟩
-    exact norm_nonneg (x - (a : H))
-
-  --build seq with ‖x - a_n‖^2 → del^2
-  have exist_seq :
-    ∀ n : ℕ, ∃ a : A, ‖x - (a : H)‖ ≤ δ + 1/(n+1) := by
-    intro n
-    have hpos : 0 < (1 : ℝ) / (n + 1) := by
-      have hpos' : (0 : ℝ) < (n + 1) := by
-        exact_mod_cast Nat.succ_pos n
-      exact one_div_pos.mpr hpos'
-
-    -- Use definition of infimum
-    have hne : (Set.range fun a : A => ‖x - (a : H)‖).Nonempty := by
-      rcases h0 with ⟨a⟩
-      refine ⟨‖x - (a : H)‖, ?_⟩
-      exact ⟨⟨a, by trivial⟩, rfl⟩
-
-    -- missing
-
-    sorry
-
-
-  --build seq and its spec
-  let seq := fun n => Classical.choose (exist_seq n)
-  let seq_spec := fun n => Classical.choose_spec (exist_seq n)
-  --#check seq
-  --#check seq_spec
-
-  --build a cauchy seq
-  have cauchy : CauchySeq (fun n => (seq n : H)) := by
-    sorry
-
-  --A is closed so we can find a_lim in A
-  obtain ⟨a_lim, tendsto⟩ := cauchySeq_tendsto_of_complete cauchy
-  have a_lim_2 : (a_lim : H) ∈ A := by
-    -- A closed + seq in A -> limit in A
-    sorry
-
-  -- ||x - a_lim||^2 = del^2
-  have norm_limit : ‖x - a_lim‖^2 = δ^2 := by
-    -- continuity of norm, limit of seq_spec gives equality
-    --Use prop 4.10
-    sorry
-
-  -- uniqueness
-  have unique : ∀ b : A, ‖x - (b : H)‖ = δ → b = ⟨a_lim, a_lim_2⟩ := by
-    intro b hb
-    -- get ‖a_lim - b‖ = 0
-    --have : δ^2 ≤ ‖x - ((1/2 : ℝ) • (a_lim + (b : H)) : H)‖^2 := by
-      --sorry
-    -- Need to get ‖a_lim - b‖^2 = 0
-    sorry
-  sorry
-
-
-
+  have hkA : k ∈ A := by
+    have : ∀ n : ℕ, t n ∈ A := by
+      intro n
+      exact (Classical.choose_spec (exists_sequence x A hne n)).1
+    exact IsClosed.mem_of_tendsto hclosed hk (Filter.Eventually.of_forall this)
+  have hkδ : ‖x - k‖ = δ := by
+    set T : ℕ → ℝ := fun n => ‖x - t n‖
+    have h1 : Filter.Tendsto T Filter.atTop (nhds ‖x - k‖) := by
+      set f : H → ℝ := fun y => ‖x - y‖
+      have : Continuous f := by continuity
+      have : Filter.Tendsto (f ∘ t) Filter.atTop (nhds (f k)) :=
+        Continuous.tendsto this k |>.comp hk
+      exact this
+    have h2 : Filter.Tendsto T Filter.atTop (nhds δ) := by
+      set fδ : ℕ → ℝ := fun n => δ
+      set fδn : ℕ → ℝ := fun n => δ + 1/n
+      -- use sandwich thm as inf‖x-a‖ ≤ ‖x-t n‖ ≤ √(δ^2 + 1/n) ≤ √(δ^2 + 2/n + 1/n^2) = δ + 1/n
+      have hδ : Filter.Tendsto fδ Filter.atTop (nhds δ) := by sorry
+      have hδn : Filter.Tendsto fδn Filter.atTop (nhds δ) := by sorry
+      have hδT : fδ ≤ T := by sorry
+      have hTδ : T ≤ fδn := by sorry
+      exact tendsto_of_tendsto_of_tendsto_of_le_of_le hδ hδn hδT hTδ
+    exact tendsto_nhds_unique h1 h2
+  have : ∀ k₁ : A, ∀ k₂ : A, (‖x - k₁‖ = δ ∧ ‖x - k₂‖ = δ) → k₁ = k₂ := by sorry
+  have unique : ∀ y : A, ‖x - y‖ = δ → y = ⟨k, hkA⟩ := by
+    intro y hy
+    exact (this y ⟨k, hkA⟩ ⟨hy, hkδ⟩)
+  use ⟨k, hkA⟩
 
 -- Define Orthogonal complement of a set + show its a linear subspace
 def OrthogonalComplement (A : Set H) : Submodule ℂ H where
