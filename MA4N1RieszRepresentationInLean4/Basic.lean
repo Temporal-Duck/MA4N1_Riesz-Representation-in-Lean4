@@ -169,10 +169,10 @@ lemma exists_sequence (x : H) (A : Set H) (hne : A.Nonempty) (n : ℕ) :
 
 
 
--- Uncomment if needs to be used, otherwise delete
--- lemma midpoint_closer_to_x (x : H) (A : Set H) (a b : A) :
---   ‖x - (1/2) • (a + b)‖^2 = (1/2)*‖x - a‖^2 + (1/2)*‖x - b‖^2 - (1/4)*‖(a : H) - b‖^2 := by
---   sorry
+-- gonna use this later in closest_point - akira
+lemma midpoint_closer_to_x (x : H) (A : Set H) (a b : A) :
+  ‖x - (1/2) • (a + b)‖^2 = (1/2)*‖x - a‖^2 + (1/2)*‖x - b‖^2 - (1/4)*‖(a : H) - b‖^2 := by
+  sorry
 
 
 -- prop 5.16 edit - akira
@@ -226,14 +226,22 @@ theorem closest_point_temp (A : Set H) (hne : A.Nonempty)
           simp
           rw [norm_sub_rev (t m) (t n)]
           ring
-        _ ≤ (1/2)*(δ^2+1/n) + (1/2)*(δ^2+1/m) - (1/4)*‖t n - t m‖^2 := by
+        _ ≤ (1/2)*(δ^2+1/(n+1)) + (1/2)*(δ^2+1/(m+1)) - (1/4)*‖t n - t m‖^2 := by
           gcongr
           · exact (Classical.choose_spec (exists_sequence x A hne n)).2
           exact (Classical.choose_spec (exists_sequence x A hne m)).2
+        _ ≤ (1/2)*(δ^2+1/n) + (1/2)*(δ^2+1/m) - (1/4)*‖t n - t m‖^2 := by
+          gcongr
+          · sorry -- lean includes 0 in ℕ :( need to find workaround
+          · simp
+          · sorry --""--
+          simp
         _ = δ^2 + 1/(2*n) + 1/(2*m) - (1/4)*‖t n - t m‖^2 := by
           grind
     calc
-      ‖t m - t n‖ ≤ √(2/n + 2/m) := by sorry
+      ‖t m - t n‖ ≤ √(2/n + 2/m) := by
+        field_simp at this
+        sorry
       _ ≤ √(4/N) := by
         gcongr
         sorry
