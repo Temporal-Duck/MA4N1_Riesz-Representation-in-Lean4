@@ -153,13 +153,27 @@ def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
 
 -- Existence of sequence in Prop 5.16
 lemma exists_sequence (x : H) (A : Set H) (hne : A.Nonempty) (n : ℕ) :
-  ∃ a, a ∈ A ∧ ‖x - a‖^2 ≤ (sInf (Set.range fun a : A => ‖x - a‖))^2 + 1/n := by
+  ∃ a, a ∈ A ∧ ‖x - a‖^2 ≤ (sInf (Set.range fun a : A => ‖x - a‖))^2 + 1/(n+1) := by
   let δ := sInf (Set.range fun a : A => ‖x - a‖)
+  have hδ_nonneg : 0 ≤ δ := by
+    apply Real.sInf_nonneg
+    rintro _ ⟨a, rfl⟩
+    exact norm_nonneg (x - a)
+  have hpos : 0 < (1 : ℝ) / (n + 1) := by
+    exact one_div_pos.mpr (by exact_mod_cast Nat.succ_pos n)
+  -- Use definition of infimum
+  have hne_range : (Set.range fun a : A => ‖x - a‖).Nonempty := by
+    rcases hne with ⟨a⟩
+    refine ⟨‖x - a‖, ⟨⟨a, by trivial⟩, rfl⟩⟩
   sorry
 
-lemma midpoint_closer_to_x (x : H) (A : Set H) (a b : A) :
-  ‖x - (1/2) • (a + b)‖^2 = (1/2)*‖x - a‖^2 + (1/2)*‖x - b‖^2 - (1/4)*‖(a : H) - b‖^2 := by
-  sorry
+
+
+-- Uncomment if needs to be used, otherwise delete
+-- lemma midpoint_closer_to_x (x : H) (A : Set H) (a b : A) :
+--   ‖x - (1/2) • (a + b)‖^2 = (1/2)*‖x - a‖^2 + (1/2)*‖x - b‖^2 - (1/4)*‖(a : H) - b‖^2 := by
+--   sorry
+
 
 -- prop 5.16 edit - akira
 theorem closest_point_temp (A : Set H) (hne : A.Nonempty)
