@@ -171,7 +171,7 @@ lemma exists_sequence (x : H) (A : Set H) (hne : A.Nonempty) (n : ℕ) :
 
 -- gonna use this later in closest_point - akira
 lemma midpoint_closer_to_x (x : H) (A : Set H) (a b : A) :
-  ‖x - (1/2) • (a + b)‖^2 = (1/2)*‖x - a‖^2 + (1/2)*‖x - b‖^2 - (1/4)*‖(a : H) - b‖^2 := by
+  ‖x - (1/(2 : ℝ)) • (a + b)‖^2 = (1/2)*‖x - a‖^2 + (1/2)*‖x - b‖^2 - (1/4)*‖(a : H) - b‖^2 := by
   sorry
 
 
@@ -338,13 +338,43 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
         exact hsqrt_le
       exact tendsto_of_tendsto_of_tendsto_of_le_of_le hδ hδn hδT hTδ
     exact tendsto_nhds_unique h1 h2
-  have : ∀ k₁ : A, ∀ k₂ : A, (‖x - k₁‖ = δ ∧ ‖x - k₂‖ = δ) → k₁ = k₂ := by sorry
+  have : ∀ k₁ : A, ∀ k₂ : A, (‖x - k₁‖ = δ ∧ ‖x - k₂‖ = δ) → k₁ = k₂ := by
+    intro k₁ k₂ ⟨hk₁, hk₂⟩
+    have h1 : δ^2 ≤ ‖x - (1/(2 : ℝ))•(k₁ + k₂)‖^2 := by
+      have hmem : (1/(2 : ℝ))•((k₁ : H) + k₂) ∈ A := by
+        simp
+        have : 2⁻¹ = (1 : ℝ) - 2⁻¹ := by ring
+        conv_rhs =>
+          arg 1
+          rw [this]
+        refine hconv k₁ k₂ ?_ ?_ 2⁻¹ ?_
+        · exact Subtype.coe_prop k₁
+        · exact Subtype.coe_prop k₂
+        grind
+      have : δ ≤ ‖x - (1/(2 : ℝ))•(k₁ + k₂)‖ := by
+        apply csInf_le
+        · use 0
+          unfold lowerBounds
+          simp
+        use ⟨(1/(2 : ℝ))•(k₁ + k₂), hmem⟩
+      exact pow_le_pow_left₀ hδ_nonneg this 2
+    have h2 : ‖x - (1/(2 : ℝ))•(k₁ + k₂)‖^2 = δ^2 - 1/4*‖(k₁ : H) - k₂‖^2 := by
+      let := midpoint_closer_to_x x A k₁ k₂
+      rw [hk₁, hk₂, ←two_mul] at this
+      field_simp at this
+      field_simp
+      exact this
+    have : δ^2 ≤ δ^2 - 1/4*‖(k₁ : H) - k₂‖^2 := by exact le_of_le_of_eq h1 h2
+    have : ‖(k₁ : H) - k₂‖^2 ≤ 0 := by linarith
+    have : ‖(k₁ : H) - k₂‖^2 = 0 := by linarith [sq_nonneg ‖(k₁ : H) - k₂‖]
+    have : ‖(k₁ : H) - k₂‖ = 0 := by exact eq_zero_of_pow_eq_zero this
+    have : (k₁ : H) - k₂ = 0 := by exact norm_eq_zero.mp this
+    apply Subtype.ext
+    exact sub_eq_zero.mp this
   have unique : ∀ y : A, ‖x - y‖ = δ → y = ⟨k, hkA⟩ := by
     intro y hy
     exact (this y ⟨k, hkA⟩ ⟨hy, hkδ⟩)
   use ⟨k, hkA⟩
-
-example (a : ℕ) : a + a + a = a + (a + a) := by exact Nat.add_assoc a a a
 
 -- Define Orthogonal complement of a set + show its a linear subspace
 def OrthogonalComplement (A : Set H) : Submodule ℂ H where
