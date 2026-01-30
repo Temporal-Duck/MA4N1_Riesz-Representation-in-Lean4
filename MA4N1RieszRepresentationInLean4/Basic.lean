@@ -294,8 +294,33 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
       -- use sandwich thm as inf‖x-a‖ ≤ ‖x-t n‖ ≤ √(δ^2 + 1/n) ≤ √(δ^2 + 2/n + 1/n^2) = δ + 1/n
       have hδ : Filter.Tendsto fδ Filter.atTop (nhds δ) := by sorry
       have hδn : Filter.Tendsto fδn Filter.atTop (nhds δ) := by sorry
-      have hδT : fδ ≤ T := by sorry
-      have hTδ : T ≤ fδn := by sorry
+      have hδT : fδ ≤ T := by
+        intro n
+        have : fδ n = δ := by exact rfl
+        rw [this]
+        have : T n = ‖x - t n‖ := by exact rfl
+        rw [this]
+        apply csInf_le
+        · use 0
+          unfold lowerBounds
+          simp
+        use ⟨t n, ?_⟩
+        exact (Classical.choose_spec (exists_sequence x A hne n)).1
+      have hTδ : T ≤ fδn := by
+        intro n
+        have : T n = ‖x - t n‖ := by exact rfl
+        rw [this]
+        have : fδn n = δ + 1/n := by exact rfl
+        rw [this]
+        have hsq : ‖x - t n‖^2 ≤ (δ + 1/n)^2 := by
+          calc
+            ‖x - t n‖^2 ≤ δ^2 + 1/n := by sorry
+            _ ≤ δ^2 + 1/n + 1/n + 1/(n^2) := by sorry
+            _ = (δ + 1/n)^2 := by sorry
+        have : √(‖x - t n‖^2) ≤ √((δ + 1/n)^2) := by exact Real.sqrt_le_sqrt hsq
+        rw [←Real.sqrt_sq (by exact norm_nonneg (x - t n) : 0 ≤ ‖x - t n‖)]
+        rw [←Real.sqrt_sq (by sorry : 0 ≤ δ + 1/n)]
+        exact this
       exact tendsto_of_tendsto_of_tendsto_of_le_of_le hδ hδn hδT hTδ
     exact tendsto_nhds_unique h1 h2
   have : ∀ k₁ : A, ∀ k₂ : A, (‖x - k₁‖ = δ ∧ ‖x - k₂‖ = δ) → k₁ = k₂ := by sorry
@@ -303,6 +328,8 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
     intro y hy
     exact (this y ⟨k, hkA⟩ ⟨hy, hkδ⟩)
   use ⟨k, hkA⟩
+
+example (a : ℝ) (h : 0 ≤ a): √(a^2) = a := by exact Real.sqrt_sq h
 
 -- Define Orthogonal complement of a set + show its a linear subspace
 def OrthogonalComplement (A : Set H) : Submodule ℂ H where
