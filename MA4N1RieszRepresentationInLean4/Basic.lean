@@ -181,6 +181,10 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
   ∀ x : H, ∃! k : A, ‖x - k‖ = sInf (Set.range fun a : A => ‖x - a‖) := by
   intro x
   set δ := sInf (Set.range fun a : A => ‖x - a‖)
+  have hδ_nonneg : 0 ≤ δ := by
+    apply Real.sInf_nonneg
+    rintro _ ⟨a, rfl⟩
+    exact norm_nonneg (x - a)
   set t := fun n => Classical.choose (exists_sequence x A hne n)
   have : CauchySeq t := by
     apply NormedAddCommGroup.cauchySeq_iff.mpr
@@ -192,10 +196,6 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
     have : δ^2 ≤ δ^2 + 1/(2*(n+1)) + 1/(2*(m+1)) - (1/4)*‖t n - t m‖^2 := by
       calc
         δ^2 ≤ ‖x - (1/(2 : ℝ))•(t n + t m)‖^2 := by
-          have hδ : 0 ≤ δ := by
-            apply Real.sInf_nonneg
-            rintro _ ⟨a, rfl⟩
-            exact norm_nonneg (x - a)
           have hle : δ ≤ ‖x - (1/(2 : ℝ))•(t n + t m)‖ := by
             have : (1/(2 : ℝ))•(t n + t m) ∈ A := by
               rw [smul_add]
@@ -210,7 +210,7 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
               unfold lowerBounds
               simp
             use ⟨(1/(2 : ℝ))•(t n + t m), this⟩
-          exact pow_le_pow_left₀ hδ hle 2
+          exact pow_le_pow_left₀ hδ_nonneg hle 2
         _ = (1/2)*‖x - t n‖^2 + (1/2)*‖x - t m‖^2 - (1/4)*‖t n - t m‖^2 := by
           have paralellogram : ‖x - t n + (x - t m)‖^2 = 2*‖x - t n‖^2 + 2*‖x - t m‖^2
             - ‖x - t n - (x - t m)‖^2 := by
@@ -290,7 +290,7 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
       exact this
     have h2 : Filter.Tendsto T Filter.atTop (nhds δ) := by
       set fδ : ℕ → ℝ := fun n => δ
-      set fδn : ℕ → ℝ := fun n => δ + 1/n
+      set fδn : ℕ → ℝ := fun n => δ + 1/(n+1)
       -- use sandwich thm as inf‖x-a‖ ≤ ‖x-t n‖ ≤ √(δ^2 + 1/n) ≤ √(δ^2 + 2/n + 1/n^2) = δ + 1/n
       have hδ : Filter.Tendsto fδ Filter.atTop (nhds δ) := by sorry
       have hδn : Filter.Tendsto fδn Filter.atTop (nhds δ) := by sorry
@@ -310,17 +310,32 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
         intro n
         have : T n = ‖x - t n‖ := by exact rfl
         rw [this]
-        have : fδn n = δ + 1/n := by exact rfl
+        have : fδn n = δ + 1/(n+1) := by exact rfl
         rw [this]
-        have hsq : ‖x - t n‖^2 ≤ (δ + 1/n)^2 := by
+        have hn_nonneg : 0 ≤ 1/((n : ℝ) + 1) := by
+          simp
+          linarith
+        have : ‖x - t n‖^2 ≤ (δ + 1/(n+1))^2 := by
           calc
-            ‖x - t n‖^2 ≤ δ^2 + 1/n := by sorry
-            _ ≤ δ^2 + 1/n + 1/n + 1/(n^2) := by sorry
-            _ = (δ + 1/n)^2 := by sorry
-        have : √(‖x - t n‖^2) ≤ √((δ + 1/n)^2) := by exact Real.sqrt_le_sqrt hsq
+            ‖x - t n‖^2 ≤ δ^2 + 1/(n+1) := by
+              exact (Classical.choose_spec (exists_sequence x A hne n)).2
+            _ ≤ δ^2 + 1/(n+1) + 1/(n+1) + 1/((n+1)^2) := by
+              have : 0 ≤ 1/((n : ℝ)+1)^2 := by
+                field_simp
+                simp
+              have : 0 ≤ 1/((n : ℝ)+1) + 1/((n+1)^2) := by exact Left.add_nonneg hn_nonneg this
+              linarith [this]
+            _ = (δ + 1/(n+1))^2 := by
+              -- realised this whole calc proof is wrong, will go back and fix
+              sorry
+        have hsqrt_le : √(‖x - t n‖^2) ≤ √((δ + 1/(n+1))^2) := by exact Real.sqrt_le_sqrt this
         rw [←Real.sqrt_sq (by exact norm_nonneg (x - t n) : 0 ≤ ‖x - t n‖)]
-        rw [←Real.sqrt_sq (by sorry : 0 ≤ δ + 1/n)]
-        exact this
+        have : 0 ≤ δ + 1/(n+1) := by
+          refine Left.add_nonneg ?_ ?_
+          · exact hδ_nonneg
+          exact hn_nonneg
+        rw [←Real.sqrt_sq this]
+        exact hsqrt_le
       exact tendsto_of_tendsto_of_tendsto_of_le_of_le hδ hδn hδT hTδ
     exact tendsto_nhds_unique h1 h2
   have : ∀ k₁ : A, ∀ k₂ : A, (‖x - k₁‖ = δ ∧ ‖x - k₂‖ = δ) → k₁ = k₂ := by sorry
@@ -329,7 +344,7 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
     exact (this y ⟨k, hkA⟩ ⟨hy, hkδ⟩)
   use ⟨k, hkA⟩
 
-example (a : ℝ) (h : 0 ≤ a): √(a^2) = a := by exact Real.sqrt_sq h
+example (a : ℕ) : a + a + a = a + (a + a) := by exact Nat.add_assoc a a a
 
 -- Define Orthogonal complement of a set + show its a linear subspace
 def OrthogonalComplement (A : Set H) : Submodule ℂ H where
