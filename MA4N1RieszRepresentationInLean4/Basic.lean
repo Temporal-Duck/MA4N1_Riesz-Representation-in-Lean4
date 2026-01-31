@@ -167,7 +167,18 @@ lemma exists_sequence (x : H) (A : Set H) (hne : A.Nonempty) (n : ℕ) :
     refine ⟨‖x - a‖, ⟨⟨a, by trivial⟩, rfl⟩⟩
   sorry
 
-
+-- midpoint of two points in convex set is in the set
+lemma midpoint_mem_of_convex {A : Set V} (hconv : ConvexSet A) (a b : A) :
+  (1/(2 : ℝ))•((a : V) + b) ∈ A := by
+  simp
+  have : 2⁻¹ = (1 : ℝ) - 2⁻¹ := by ring
+  conv_rhs =>
+    arg 1
+    rw [this]
+  refine hconv a b ?_ ?_ 2⁻¹ ?_
+  · exact Subtype.coe_prop a
+  · exact Subtype.coe_prop b
+  grind
 
 -- gonna use this later in closest_point - akira
 lemma midpoint_closer_to_x (x : H) (A : Set H) (a b : A) :
@@ -197,19 +208,14 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
       calc
         δ^2 ≤ ‖x - (1/(2 : ℝ))•(t n + t m)‖^2 := by
           have hle : δ ≤ ‖x - (1/(2 : ℝ))•(t n + t m)‖ := by
-            have : (1/(2 : ℝ))•(t n + t m) ∈ A := by
-              rw [smul_add]
-              let := hconv (t n) (t m) ?_ ?_ (1/(2 : ℝ)) ?_
-              ring_nf at this -- not sure why this is yellow
-              refine this -- and this
-              · exact (Classical.choose_spec (exists_sequence x A hne n)).1
-              · exact (Classical.choose_spec (exists_sequence x A hne m)).1
-              grind
             apply csInf_le
             · use 0
               unfold lowerBounds
               simp
-            use ⟨(1/(2 : ℝ))•(t n + t m), this⟩
+            use ⟨(1/(2 : ℝ))•(t n + t m), ?_⟩
+            refine midpoint_mem_of_convex hconv ⟨(t n), ?_⟩ ⟨(t m), ?_⟩
+            · exact (Classical.choose_spec (exists_sequence x A hne n)).1
+            exact (Classical.choose_spec (exists_sequence x A hne m)).1
           exact pow_le_pow_left₀ hδ_nonneg hle 2
         _ = (1/2)*‖x - t n‖^2 + (1/2)*‖x - t m‖^2 - (1/4)*‖t n - t m‖^2 := by
           have paralellogram : ‖x - t n + (x - t m)‖^2 = 2*‖x - t n‖^2 + 2*‖x - t m‖^2
@@ -282,75 +288,59 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
     exact IsClosed.mem_of_tendsto hclosed hk (Filter.Eventually.of_forall this)
   have hkδ : ‖x - k‖ = δ := by
     set T : ℕ → ℝ := fun n => ‖x - t n‖
-    have h1 : Filter.Tendsto T Filter.atTop (nhds ‖x - k‖) := by
+    have h1 : Filter.Tendsto T Filter.atTop (nhds ‖x - k‖) := by -- ‖x - t n‖ -> ‖x - k‖
       set f : H → ℝ := fun y => ‖x - y‖
       have : Continuous f := by continuity
       have : Filter.Tendsto (f ∘ t) Filter.atTop (nhds (f k)) :=
         Continuous.tendsto this k |>.comp hk
       exact this
-    have h2 : Filter.Tendsto T Filter.atTop (nhds δ) := by
-      set fδ : ℕ → ℝ := fun n => δ
-      set fδn : ℕ → ℝ := fun n => δ + 1/(n+1)
-      -- use sandwich thm as inf‖x-a‖ ≤ ‖x-t n‖ ≤ √(δ^2 + 1/n) ≤ √(δ^2 + 2/n + 1/n^2) = δ + 1/n
-      have hδ : Filter.Tendsto fδ Filter.atTop (nhds δ) := by sorry
-      have hδn : Filter.Tendsto fδn Filter.atTop (nhds δ) := by sorry
-      have hδT : fδ ≤ T := by
+    have h2 : Filter.Tendsto T Filter.atTop (nhds δ) := by -- ‖x - t n‖ -> δ
+      set T_squared : ℕ → ℝ := fun n => ‖x - t n‖^2
+      set fδ : ℕ → ℝ := fun n => δ^2
+      set fδn : ℕ → ℝ := fun n => δ^2 + 1/(n+1)
+      have hδT : fδ ≤ T_squared := by
         intro n
-        have : fδ n = δ := by exact rfl
-        rw [this]
-        have : T n = ‖x - t n‖ := by exact rfl
-        rw [this]
-        apply csInf_le
-        · use 0
-          unfold lowerBounds
-          simp
-        use ⟨t n, ?_⟩
-        exact (Classical.choose_spec (exists_sequence x A hne n)).1
-      have hTδ : T ≤ fδn := by
+        simp [fδ, T_squared]
+        have : δ ≤ ‖x - t n‖ := by
+          apply csInf_le
+          · use 0
+            unfold lowerBounds
+            simp
+          use ⟨t n, ?_⟩
+          exact (Classical.choose_spec (exists_sequence x A hne n)).1
+        exact pow_le_pow_left₀ hδ_nonneg this 2
+      have hTδ : T_squared ≤ fδn := by
         intro n
-        have : T n = ‖x - t n‖ := by exact rfl
-        rw [this]
-        have : fδn n = δ + 1/(n+1) := by exact rfl
-        rw [this]
-        have hn_nonneg : 0 ≤ 1/((n : ℝ) + 1) := by
-          simp
-          linarith
-        have : ‖x - t n‖^2 ≤ (δ + 1/(n+1))^2 := by
-          calc
-            ‖x - t n‖^2 ≤ δ^2 + 1/(n+1) := by
-              exact (Classical.choose_spec (exists_sequence x A hne n)).2
-            _ ≤ δ^2 + 1/(n+1) + 1/(n+1) + 1/((n+1)^2) := by
-              have : 0 ≤ 1/((n : ℝ)+1)^2 := by
-                field_simp
-                simp
-              have : 0 ≤ 1/((n : ℝ)+1) + 1/((n+1)^2) := by exact Left.add_nonneg hn_nonneg this
-              linarith [this]
-            _ = (δ + 1/(n+1))^2 := by
-              -- realised this whole calc proof is wrong, will go back and fix
-              sorry
-        have hsqrt_le : √(‖x - t n‖^2) ≤ √((δ + 1/(n+1))^2) := by exact Real.sqrt_le_sqrt this
-        rw [←Real.sqrt_sq (by exact norm_nonneg (x - t n) : 0 ≤ ‖x - t n‖)]
-        have : 0 ≤ δ + 1/(n+1) := by
-          refine Left.add_nonneg ?_ ?_
-          · exact hδ_nonneg
-          exact hn_nonneg
-        rw [←Real.sqrt_sq this]
-        exact hsqrt_le
-      exact tendsto_of_tendsto_of_tendsto_of_le_of_le hδ hδn hδT hTδ
+        simp [T_squared, fδn]
+        have := (Classical.choose_spec (exists_sequence x A hne n)).2
+        simp at this
+        simp [δ, t]
+        exact this
+      have hδ : Filter.Tendsto fδ Filter.atTop (nhds (δ^2)) := by simp [fδ]
+      have hδn : Filter.Tendsto fδn Filter.atTop (nhds (δ^2)) := by
+        simp [fδn]
+        rw [show δ^2 = δ^2 + 0 by ring]
+        apply Filter.Tendsto.add
+        · simp
+        rw [show (fun (x : ℕ) ↦ ((x : ℝ) + 1)⁻¹) = fun (x : ℕ) => (1 : ℝ)/(x + 1) by
+          ext x
+          simp [div_eq_inv_mul, mul_comm]]
+        apply Filter.Tendsto.div_atTop
+        · simp
+          rfl
+        apply Filter.Tendsto.atTop_add
+        · exact tendsto_natCast_atTop_atTop
+        · simp
+          rfl
+      have hT := tendsto_of_tendsto_of_tendsto_of_le_of_le hδ hδn hδT hTδ
+      -- Given hT : ‖x - t n‖^2 -> δ^2, show that ‖x - t n‖ -> δ
+      sorry
     exact tendsto_nhds_unique h1 h2
   have : ∀ k₁ : A, ∀ k₂ : A, (‖x - k₁‖ = δ ∧ ‖x - k₂‖ = δ) → k₁ = k₂ := by
     intro k₁ k₂ ⟨hk₁, hk₂⟩
     have h1 : δ^2 ≤ ‖x - (1/(2 : ℝ))•(k₁ + k₂)‖^2 := by
       have hmem : (1/(2 : ℝ))•((k₁ : H) + k₂) ∈ A := by
-        simp
-        have : 2⁻¹ = (1 : ℝ) - 2⁻¹ := by ring
-        conv_rhs =>
-          arg 1
-          rw [this]
-        refine hconv k₁ k₂ ?_ ?_ 2⁻¹ ?_
-        · exact Subtype.coe_prop k₁
-        · exact Subtype.coe_prop k₂
-        grind
+        exact midpoint_mem_of_convex hconv ⟨k₁, ?_⟩ ⟨k₂, ?_⟩
       have : δ ≤ ‖x - (1/(2 : ℝ))•(k₁ + k₂)‖ := by
         apply csInf_le
         · use 0
