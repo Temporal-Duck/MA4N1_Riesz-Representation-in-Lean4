@@ -11,15 +11,12 @@ open InnerProductSpace
 variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℂ V] -- Inner product space
 variable (W : Submodule ℂ V) -- Subspace of inner product space
 
-example (x : V) : ⟪x, 0⟫_ℂ = 0 := by exact inner_zero_right x
-example (x : V) : ⟪x, x⟫_ℂ = ‖x‖^2 := by exact inner_self_eq_norm_sq_to_K x
-
 def BoundedLinearOperator (A : V →ₗ[ℂ] ℂ) : Prop :=
   ∃ (M : ℝ), 0 ≤ M ∧ ∀ x : V, ‖A x‖ ≤ M * ‖x‖
 
 theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_ℂ‖ ≤ ‖x‖ * ‖y‖ := by
   -- Start from: ‖⟪x,y⟫‖ * ‖⟪y,x⟫‖ ≤ re⟪x,x⟫ * re⟪y,y⟫
-  have h := @inner_mul_inner_self_le ℂ V _ _ _ x y
+  have h := @inner_mul_inner_self_le ℂ V _ _ _ x y -- using the inbuilt C-S inequality
 
   -- rewrite re⟪x,x⟫ and re⟪y,y⟫ as ‖x‖^2 and ‖y‖^2
   have hx : (⟪x, x⟫_ℂ).re = ‖x‖ ^ 2 := by
@@ -77,21 +74,19 @@ def Orthogonal (x y : V) : Prop := ⟪x, y⟫_ℂ = 0
 notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogonal x y
 -- Orthonormal had already been declared (might want to do it ourselves)
 
--- Defn: Orthogonal set (maybe use this to update Orthonormal set later?)
+/--- Defn: Orthogonal set (maybe use this to update Orthonormal set later?)
 def OrthogonalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
   [InnerProductSpace 𝕜 E] (S : Set E) : Prop := ∀ x ∈ S, ∀ y ∈ S, x ≠ y → ⟪x,y⟫_𝕜 = 0
 
 -- Defn: Orthonormal set - using OrthogonalSet
 def OrthonormalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
   [InnerProductSpace 𝕜 E] (S : Set E) : Prop :=
-  (∀ x ∈ S, ‖x‖ = 1) ∧ OrthogonalSet (𝕜 := 𝕜) S
-
--- LinearIndependent had already been declared (might want to do it ourselves)
+  (∀ x ∈ S, ‖x‖ = 1) ∧ OrthogonalSet (𝕜 := 𝕜) S-/
 
 -- Defn: operator norm for inner product spaces -> using defn in 6.1
-noncomputable def OperatorNorm (F : V →L[ℂ] ℂ) : ℝ :=
+noncomputable
+def OperatorNorm (F : V →L[ℂ] ℂ) : ℝ :=
   sSup (Set.image (fun x => ‖F x‖) { x : V | ‖x‖ ≤ 1 })
-
 notation "‖" T "‖_op" => OperatorNorm T
 
 --lem : ‖ . ‖_op well defined as OperatorNorm is bounded
@@ -139,17 +134,15 @@ theorem operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op
 
 -- HILBERT SPACES
 
--- Define Hilbert space (assuming Completeness from Mathlib)
+-- Define Hilbert space over ℂ (assuming Completeness from Mathlib)
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 variable [CompleteSpace H] -- Hilbert Space
-variable (U : Submodule ℂ H) -- U subspace of H (NOTE : using ℂ instead of 𝕂 for now - akira)
+variable (U : Submodule ℂ H) -- U subspace of H
 
 -- Defn 5.15
 def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
   ∀ (x y : V) (_hx : x ∈ S) (_hy : y ∈ S) (t : ℝ) (_ht : 0 ≤ t ∧ t ≤ 1),
     (1 - t) • x + t • y ∈ S
--- NOTE: Might be better to use 𝕂 = ℂ since notes assume complex Hilbert spaces. It would also
--- make ConvexSet easier to apply as we run into issues treating V as an ℝ-module - Akira
 
 -- Existence of sequence in Prop 5.16
 lemma exists_sequence (x : H) (A : Set H) (hne : A.Nonempty) (n : ℕ) :
@@ -582,15 +575,11 @@ def Projection (P : H →L[ℂ] H) : Prop :=
 def OrthogonalProjection (P : H →L[ℂ] H) : Prop :=
   Projection P ∧ ∀ (x y : H), P y = 0 → ⟪P x, y⟫_ℂ = 0
 
--- Defn: Continuous dual space of H
-def DualH := H →L[ℂ] ℂ
-
--- Do we want to prove its a vector space?
--- Do we need a separate defn for operator norm on DualH?
+/--- Defn: Continuous dual space of H
+def DualH := H →L[ℂ] ℂ-/
 
 -- RIESZ REPRESENTATION THEOREM
 
--- Example 6.10 + Claim
 -- Thm: Riesz Representation Theorem
 
 -- Due to Lean being conjugate linear in first entry of inner product,
