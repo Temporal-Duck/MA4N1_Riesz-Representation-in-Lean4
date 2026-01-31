@@ -197,12 +197,6 @@ lemma midpoint_closer_to_x {A : Set V} (x : V) (a b : A) :
   rw [norm_sub_rev (a : V) b]
   ring
 
--- Prop 4.10 - modified
-theorem convergence_inner_self_norm {f : ℕ → H} {x : H} (hf : Filter.Tendsto f Filter.atTop (nhds x)) :
-  Filter.Tendsto (fun (n : ℕ) => ‖f n‖^2) Filter.atTop (nhds (‖x‖^2)) := by
-  have := @Filter.Tendsto.inner _ _ Complex.instRCLike _ _ _ _ _ _ _ _ hf hf
-  sorry
-
 -- Prop 5.16: Closest point on a convex set
 theorem closest_point (A : Set H) (hne : A.Nonempty)
 (hclosed : IsClosed A) (hconv : ConvexSet A) :
@@ -286,7 +280,7 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
         field_simp
         rw [mul_comm]
         exact hN
-  obtain ⟨k, hk⟩ := cauchySeq_tendsto_of_complete this -- (t n → k as n → ∞)
+  obtain ⟨k, hk⟩ := cauchySeq_tendsto_of_complete this
   have hkA : k ∈ A := by
     have : ∀ n : ℕ, t n ∈ A := by
       intro n
@@ -294,13 +288,13 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
     exact IsClosed.mem_of_tendsto hclosed hk (Filter.Eventually.of_forall this)
   have hkδ : ‖x - k‖ = δ := by
     set T : ℕ → ℝ := fun n => ‖x - t n‖
-    have h1 : Filter.Tendsto T Filter.atTop (nhds ‖x - k‖) := by -- ‖x - t n‖ -> ‖x - k‖
+    have h1 : Filter.Tendsto T Filter.atTop (nhds ‖x - k‖) := by
       set f : H → ℝ := fun y => ‖x - y‖
       have : Continuous f := by continuity
       have : Filter.Tendsto (f ∘ t) Filter.atTop (nhds (f k)) :=
         Continuous.tendsto this k |>.comp hk
       exact this
-    have h2 : Filter.Tendsto T Filter.atTop (nhds δ) := by -- ‖x - t n‖ -> δ
+    have h2 : Filter.Tendsto T Filter.atTop (nhds δ) := by
       set T_squared : ℕ → ℝ := fun n => ‖x - t n‖^2
       set fδ : ℕ → ℝ := fun n => δ^2
       set fδn : ℕ → ℝ := fun n => δ^2 + 1/(n+1)
@@ -338,9 +332,10 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
         · exact tendsto_natCast_atTop_atTop
         · simp
           rfl
-      have hT := tendsto_of_tendsto_of_tendsto_of_le_of_le hδ hδn hδT hTδ
-      -- Given hT : ‖x - t n‖^2 -> δ^2, show that ‖x - t n‖ -> δ
-      sorry
+      have hT := (tendsto_of_tendsto_of_tendsto_of_le_of_le hδ hδn hδT hTδ).sqrt
+      simp [T_squared, Real.sqrt_sq hδ_nonneg] at hT
+      simp [T]
+      exact hT
     exact tendsto_nhds_unique h1 h2
   have : ∀ k₁ : A, ∀ k₂ : A, (‖x - k₁‖ = δ ∧ ‖x - k₂‖ = δ) → k₁ = k₂ := by
     intro k₁ k₂ ⟨hk₁, hk₂⟩
