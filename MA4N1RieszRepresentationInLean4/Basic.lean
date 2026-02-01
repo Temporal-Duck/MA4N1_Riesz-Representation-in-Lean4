@@ -2,9 +2,10 @@ import Mathlib.Tactic
 
 -- INNER PRODUCT SPACES
 
--- Define inner product
--- Define inner product space
--- Define natural norm of an inner product
+/-
+Note that in mathlib, the convention for inner products is that they are conjugate linear in the
+first entry. This means we need to define OrthogonalComplement and riesz_rep accordingly.
+-/
 
 open InnerProductSpace
 
@@ -47,7 +48,7 @@ theorem cauchy_schwartz (x y : V) : ‖⟪x , y⟫_ℂ‖ ≤ ‖x‖ * ‖y‖ 
       simp [Real.sqrt_sq hxy]
 
 
--- Prop 4.7
+-- Prop 4.7 : Parallelogram law with inner products
 theorem parallelogram (x y : V) : ⟪x+y, x+y⟫_ℂ + ⟪x-y, x-y⟫_ℂ = 2*⟪x, x⟫_ℂ + 2*⟪y, y⟫_ℂ := by
   rw [inner_add_right, inner_add_left, inner_add_left]
   rw [inner_sub_right, inner_sub_left, inner_sub_left]
@@ -71,17 +72,37 @@ theorem parallelogram_norm (x y : V) : ‖x+y‖^2 + ‖x-y‖^2 = 2*‖x‖^2 +
 
 -- Define orthogonality (polymorphic over any inner-product space)
 def Orthogonal (x y : V) : Prop := ⟪x, y⟫_ℂ = 0
-notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogonal x y
--- Orthonormal had already been declared (might want to do it ourselves)
 
-/--- Defn: Orthogonal set (maybe use this to update Orthonormal set later?)
+notation x " ⟂ " y => Orthogonal x y -- can write x ⟂ y instead of Orthogonal x y
+
+-- Define Orthogonal complement of a set + show its a linear subspace
+def OrthogonalComplement (A : Set V) : Submodule ℂ V where
+  carrier := {y : V | ∀ x ∈ A, ⟪y, x⟫_ℂ = 0}
+  add_mem' {a b} ha hb := by
+    dsimp
+    intro x hx
+    dsimp at ha
+    dsimp at hb
+    rw [inner_add_left, (ha x) hx, (hb x) hx, zero_add]
+  zero_mem' := by
+    dsimp
+    exact fun x a ↦ inner_zero_left x
+  smul_mem' c {x} hx := by
+    dsimp
+    intro y hy
+    dsimp at hx
+    simp_rw [inner_smul_left, (hx y) hy, mul_zero]
+
+notation A "⟂" => OrthogonalComplement A
+
+-- Defn: Orthogonal set (maybe use this to update Orthonormal set later?)
 def OrthogonalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
   [InnerProductSpace 𝕜 E] (S : Set E) : Prop := ∀ x ∈ S, ∀ y ∈ S, x ≠ y → ⟪x,y⟫_𝕜 = 0
 
 -- Defn: Orthonormal set - using OrthogonalSet
 def OrthonormalSet {𝕜 : Type*} [RCLike 𝕜] {E : Type*} [SeminormedAddCommGroup E]
   [InnerProductSpace 𝕜 E] (S : Set E) : Prop :=
-  (∀ x ∈ S, ‖x‖ = 1) ∧ OrthogonalSet (𝕜 := 𝕜) S-/
+  (∀ x ∈ S, ‖x‖ = 1) ∧ OrthogonalSet (𝕜 := 𝕜) S
 
 -- Defn: operator norm for inner product spaces -> using defn in 6.1
 noncomputable
@@ -139,7 +160,7 @@ variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 variable [CompleteSpace H] -- Hilbert Space
 variable (U : Submodule ℂ H) -- U subspace of H
 
--- Defn 5.15
+-- Defn 5.15 : ConvexSet contains line segment connecting any two points in the set
 def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
   ∀ (x y : V) (_hx : x ∈ S) (_hy : y ∈ S) (t : ℝ) (_ht : 0 ≤ t ∧ t ≤ 1),
     (1 - t) • x + t • y ∈ S
@@ -173,6 +194,7 @@ lemma midpoint_mem_of_convex {A : Set V} (hconv : ConvexSet A) (a b : A) :
   · exact Subtype.coe_prop b
   grind
 
+-- variation of paralellogram law for closest_point
 lemma midpoint_closer_to_x {A : Set V} (x : V) (a b : A) :
   ‖x - (1/(2 : ℝ)) • (a + b)‖^2 = (1/2)*‖x - a‖^2 + (1/2)*‖x - b‖^2 - (1/4)*‖(a : V) - b‖^2 := by
   have paralellogram : ‖x - a + (x - b)‖^2 = 2*‖x - a‖^2 + 2*‖x - b‖^2
@@ -360,26 +382,6 @@ theorem closest_point (A : Set H) (hne : A.Nonempty)
     exact (this y ⟨k, hkA⟩ ⟨hy, hkδ⟩)
   use ⟨k, hkA⟩
 
--- Define Orthogonal complement of a set + show its a linear subspace
-def OrthogonalComplement (A : Set H) : Submodule ℂ H where
-  carrier := {y : H | ∀ x ∈ A, ⟪x, y⟫_ℂ = 0}
-  add_mem' {a b} ha hb := by
-    dsimp
-    intro x hx
-    dsimp at ha
-    dsimp at hb
-    rw [inner_add_right, (ha x) hx, (hb x) hx, zero_add]
-  zero_mem' := by
-    dsimp
-    exact fun x a ↦ inner_zero_right x
-  smul_mem' c {x} hx := by
-    dsimp
-    intro y hy
-    dsimp at hx
-    simp_rw [inner_smul_right, (hx y) hy, mul_zero]
-
-notation A "⟂" => OrthogonalComplement A
-
 -- linear subspaces are convex
 lemma lin_subspace_convex : ConvexSet W.carrier := by
   unfold ConvexSet
@@ -389,7 +391,7 @@ lemma lin_subspace_convex : ConvexSet W.carrier := by
   have h2 : t • b ∈ W := by exact Submodule.smul_mem W t hb
   exact W.add_mem' h1 h2
 
--- makes calc steps easier
+-- makes calc steps easier especially when dealing with ⟨x, x⟩_ℂ
 lemma real_sq_eq_complex_sq (a : ℝ) : ((a : ℂ)^2).re = a^2 := by
   set x := a^2
   have : (x : ℂ).re = x := by exact rfl
@@ -400,31 +402,29 @@ lemma real_sq_eq_complex_sq (a : ℝ) : ((a : ℂ)^2).re = a^2 := by
       push_cast at this
       exact this
 
--- u closest point to x in U → x-u ∈ U⟂
-lemma sub_closest_in_orth (x : H) (u : U) (h : ‖x - u‖ = sInf (Set.range fun (a : U) ↦ ‖x - a‖)) :
-  (x - u) ∈ U.carrier ⟂ := by
+-- u closest point to x in U as in closest_point theorem → x-u ∈ U⟂
+lemma sub_closest_in_orth (x : V) (u : W) (h : ‖x - u‖ = sInf (Set.range fun (a : W) ↦ ‖x - a‖)) :
+  (x - u) ∈ W.carrier ⟂ := by
   set v := x - u
   by_contra h
   unfold OrthogonalComplement at h
   simp at h
   obtain ⟨y', hy'_mem, hy'_ne⟩ := h
-  set α := ⟪y', v⟫_ℂ
+  set α := ⟪v, y'⟫_ℂ
   set y := (1/α) • y'
-  have hy_one : ⟪y, v⟫_ℂ = 1 := by
-    simp_rw [y, inner_smul_left, α]
+  have hy_one : ⟪v, y⟫_ℂ = 1 := by
+    simp_rw [y, inner_smul_right, α]
     rw [one_div, mul_comm]
-    sorry -- Unfortunately lean is conjugate linear in first entry as opposed to second entry
-    -- and the proof was written with the assumption of conjugate linearity in right entry.
-    -- This could easily be fixed by flipping entries of all inner products
-    -- but thats too tedious as I would have to tweak proofs as well.
+    apply Complex.mul_inv_cancel
+    exact hy'_ne
   obtain ⟨n, hn⟩ := exists_nat_gt (‖y‖ ^ 2)
-  have : u + (1/Complex.ofReal n) • y ∈ U := by
+  have : u + (1/Complex.ofReal n) • y ∈ W := by
     apply Submodule.add_mem
     · exact Submodule.coe_mem u
     · unfold y
       rw [smul_smul]
-      exact Submodule.smul_mem U ((1 / n) * (1 / α)) hy'_mem
-  set u_n : U := ⟨u + (1/(n : ℂ)) • y, this⟩
+      exact Submodule.smul_mem W ((1 / n) * (1 / α)) hy'_mem
+  set u_n : W := ⟨u + (1/(n : ℂ)) • y, this⟩
   have hn_pos : (0 : ℝ) < n := by
     calc
       0 ≤ ‖y‖^2 := by exact sq_nonneg ‖y‖
@@ -460,7 +460,8 @@ lemma sub_closest_in_orth (x : H) (u : U) (h : ‖x - u‖ = sInf (Set.range fun
       _ = ‖v‖^2 - 2/n + (1/n^2) * ‖y‖^2 := by
         rw [inner_self_eq_norm_sq_to_K, inner_self_eq_norm_sq_to_K]
         rw [←real_sq_eq_complex_sq ‖v‖, ←real_sq_eq_complex_sq ‖y‖]
-        rw [inner_smul_left, inner_smul_right, this, ←inner_conj_symm, hy_one]
+        rw [inner_smul_left, inner_smul_right, this]
+        rw [←@inner_conj_symm _ _ Complex.instRCLike _ _ y v, hy_one]
         have : (starRingEnd ℂ) 1 = 1 := by exact Complex.conj_eq_iff_re.mpr rfl
         rw [this]
         ring_nf
@@ -478,19 +479,19 @@ lemma sub_closest_in_orth (x : H) (u : U) (h : ‖x - u‖ = sInf (Set.range fun
           simp at this
           exact this
         simp [this]
-  have contradiction1 : ‖x - u_n‖^2 < (sInf (Set.range fun (a : U) ↦ ‖x - a‖))^2 := by
+  have contradiction1 : ‖x - u_n‖^2 < (sInf (Set.range fun (a : W) ↦ ‖x - a‖))^2 := by
     calc
       ‖x - u_n‖^2 = ‖v‖^2 - 2/n + (1/n^2)*‖y‖^2 := by exact this
       _ < ‖v‖^2 - 2/n + (1/n^2)*n := by gcongr
       _ = ‖v‖^2 - 1/n := by
         field_simp
         ring
-      _< (sInf (Set.range fun (a : U) ↦ ‖x - a‖))^2 := by
+      _< (sInf (Set.range fun (a : W) ↦ ‖x - a‖))^2 := by
         have : 0 < 1/(n : ℝ) := by exact one_div_pos.mpr hn_pos
         rw [←h]
         linarith
-  have contradiction2 : (sInf (Set.range fun (a : U) ↦ ‖x - a‖))^2 ≤ ‖x - u_n‖^2 := by
-    have : sInf (Set.range fun (a : U) ↦ ‖x - a‖) ≤ ‖x - u_n‖ := by
+  have contradiction2 : (sInf (Set.range fun (a : W) ↦ ‖x - a‖))^2 ≤ ‖x - u_n‖^2 := by
+    have : sInf (Set.range fun (a : W) ↦ ‖x - a‖) ≤ ‖x - u_n‖ := by
       apply csInf_le
       · use 0
         unfold lowerBounds
@@ -523,7 +524,7 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
       · grind
       · rintro ⟨y, hy⟩ rfl
         simp
-    · exact @sub_closest_in_orth _ _ _ _ _ x u hu.1
+    · exact sub_closest_in_orth U x u hu.1
   constructor
   · exact huv
   · let P : U → Prop := fun y => ∃! v : U.carrier⟂, x = y + v
@@ -540,7 +541,7 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
             rw [h₁]
             simp
           _ = v₂ - v₁ := by simp
-      have hinner : ⟪(u₁ : H) - u₂, v₂ - v₁⟫_ℂ = 0 := by
+      have hinner : ⟪(v₂ : H) - v₁, u₁ - u₂⟫_ℂ = 0 := by
         have hu_mem : (u₁ : H) - u₂ ∈ U := by exact Submodule.sub_mem U u₁.2 u₂.2
         have hv_mem : (v₂ : H) - v₁ ∈ U⟂ := by
           have step1 : (v₁ : H) ∈ U⟂ := v₁.2
@@ -555,7 +556,7 @@ theorem orthogonal_decompose (h : IsClosed U.carrier) :
           ‖u₁ - u₂‖^2 = Complex.re ⟪(u₁ : H) - u₂, u₁ - u₂⟫_ℂ := by
             rw [@inner_self_eq_norm_sq_to_K ℂ _ _ _ _ ((u₁ : H) - u₂), ←real_sq_eq_complex_sq]
             simp
-          _ = Complex.re ⟪(u₁ : H) - u₂, (v₂ : H) - v₁⟫_ℂ := by
+          _ = Complex.re ⟪(v₂ : H) - v₁, u₁ - u₂⟫_ℂ := by
             rw [heq]
           _ = 0 := by
             exact
@@ -575,10 +576,8 @@ def Projection (P : H →L[ℂ] H) : Prop :=
 def OrthogonalProjection (P : H →L[ℂ] H) : Prop :=
   Projection P ∧ ∀ (x y : H), P y = 0 → ⟪P x, y⟫_ℂ = 0
 
-/--- Defn: Continuous dual space of H
-def DualH := H →L[ℂ] ℂ-/
-
--- RIESZ REPRESENTATION THEOREM
+-- Defn: Continuous dual space of H
+def DualH := H →L[ℂ] ℂ
 
 -- Thm: Riesz Representation Theorem
 
@@ -710,15 +709,15 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
       have remove_u :
     ⟪(starRingEnd ℂ) (G z) • z, (u : H)⟫_ℂ = 0 := by
   -- from z ∈ Uᗮ we get ⟪u, z⟫ = 0
-        have huz' : ⟪(u : H), z⟫_ℂ = 0 := by
+        have huz : ⟪z, (u : H)⟫_ℂ = 0 := by
           exact hz_in_orth (u : H) hu_in_U
 
   -- flip to ⟪z, u⟫ = 0
-        have huz : ⟪z, (u : H)⟫_ℂ = 0 := by
+        have huz' : ⟪(u : H), z⟫_ℂ = 0 := by
           calc
-            ⟪z, (u : H)⟫_ℂ = (starRingEnd ℂ) (⟪(u : H), z⟫_ℂ) := by
+            ⟪(u : H), z⟫_ℂ = (starRingEnd ℂ) (⟪z, (u : H)⟫_ℂ) := by
               simp [inner_conj_symm]
-            _ = (starRingEnd ℂ) 0 := by rw [huz']
+            _ = (starRingEnd ℂ) 0 := by rw [huz]
             _ = 0 := by simp
 
         simp [inner_smul_left, huz]
