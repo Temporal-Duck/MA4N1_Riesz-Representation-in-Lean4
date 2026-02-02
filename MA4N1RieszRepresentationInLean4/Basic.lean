@@ -636,8 +636,77 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
         _ = 0 := zero_add 0
       exact hx₀ this
 
-    -- Show that U⟂ is 1-dimensional
-    have dim_orth_one : ∃ z : H, (∀ w ∈ U.carrier ⟂, ∃ c : ℂ, (w : H) = c • z) ∧ ‖z‖ = 1 := by sorry
+    have dim_orth_one :
+      ∃ z : H, (∀ w ∈ U.carrier ⟂, ∃ c : ℂ, (w : H) = c • z) ∧ ‖z‖ = 1 := by
+      classical
+
+      let v : H := (v₀ : H)
+
+      have v_ne0 : v ≠ 0 := by
+        intro hv
+        apply Gv₀_ne
+        simp [v, hv]
+
+      have Gv_ne0 : G v ≠ 0 := by
+        simpa [v] using Gv₀_ne
+
+      let z : H := ((1 / ‖v‖ : ℝ) : ℂ) • v
+
+      have hz_norm : ‖z‖ = 1 := by
+        have hvpos : 0 < ‖v‖ := norm_pos_iff.mpr v_ne0
+        simp [z, norm_smul, hvpos.ne']
+
+      refine ⟨z, ?_, hz_norm⟩
+      intro w hw
+
+      let c : ℂ := (G w) / (G v)
+
+      have hw_eq_cv : (w : H) = c • v := by
+        have hker : G (w - c • v) = 0 := by
+          simp [c, map_sub, Gv_ne0]
+
+        have hU : (w - c • v : H) ∈ U := by
+          exact hker
+
+        have hv_mem : v ∈ U.carrier ⟂ := by
+          simp [v]
+
+        have hO : (w - c • v : H) ∈ U.carrier ⟂ := by
+          exact (U.carrier ⟂).sub_mem hw ((U.carrier ⟂).smul_mem c hv_mem)
+
+        have h0 : (w - c • v : H) = 0 := by
+          have : ⟪(w - c • v : H), (w - c • v : H)⟫_ℂ = 0 :=
+            hO (w - c • v) hU
+          exact (inner_self_eq_zero).1 this
+
+        simpa [sub_eq_zero] using h0
+      refine ⟨c * (‖v‖ : ℂ), ?_⟩
+
+      have hvnormR : (‖v‖ : ℝ) ≠ 0 := by
+        exact norm_ne_zero_iff.mpr v_ne0
+
+      have hmul : (c * (‖v‖ : ℂ)) * (((1 / ‖v‖ : ℝ) : ℂ)) = c := by
+        calc
+          (c * (‖v‖ : ℂ)) * (((1 / ‖v‖ : ℝ) : ℂ))
+              = c * ((‖v‖ : ℂ) * (((1 / ‖v‖ : ℝ) : ℂ))) := by
+                  ring_nf
+          _ = c * (1 : ℂ) := by
+                  simp [hvnormR, one_div]
+          _ = c := by simp
+
+      calc
+        (w : H) = c • v := hw_eq_cv
+        _ = (c * (‖v‖ : ℂ)) • z := by
+          have : (c * (‖v‖ : ℂ)) • z = c • v := by
+            calc
+              (c * (‖v‖ : ℂ)) • z
+                  = (c * (‖v‖ : ℂ)) • ((((1 / ‖v‖ : ℝ) : ℂ)) • v) := by
+                      rfl
+              _ = ((c * (‖v‖ : ℂ)) * (((1 / ‖v‖ : ℝ) : ℂ))) • v := by
+                      simp [smul_smul, mul_assoc]
+              _ = c • v := by
+                      rw [hmul]
+          simp [this]
 
     obtain ⟨z, hz_span, hz_norm⟩ := dim_orth_one
     -- The below code is for remove_u
