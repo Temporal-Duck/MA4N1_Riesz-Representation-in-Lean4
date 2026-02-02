@@ -166,7 +166,8 @@ def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
     (1 - t) • x + t • y ∈ S
 
 -- Existence of sequence in Prop 5.16
-lemma exists_sequence (x : H) (A : Set H) (hne : A.Nonempty) (n : ℕ) :
+lemma exists_sequence {H : Type*} [NormedAddCommGroup H] (x : H) (A : Set H) (hne : A.Nonempty)
+  (n : ℕ) :
   ∃ a, a ∈ A ∧ ‖x - a‖^2 ≤ (sInf (Set.range fun a : A => ‖x - a‖))^2 + 1/(n+1) := by
   let δ := sInf (Set.range fun a : A => ‖x - a‖)
   have hδ_nonneg : 0 ≤ δ := by
