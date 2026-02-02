@@ -179,7 +179,96 @@ lemma exists_sequence (x : H) (A : Set H) (hne : A.Nonempty) (n : ℕ) :
   have hne_range : (Set.range fun a : A => ‖x - a‖).Nonempty := by
     rcases hne with ⟨a⟩
     refine ⟨‖x - a‖, ⟨⟨a, by trivial⟩, rfl⟩⟩
-  sorry
+
+  let eps := 1 / ((2 * δ + 1) * (n + 1) : ℝ)
+  have eps_pos : 0 < eps := by
+    dsimp [eps]
+    have two_nonneg : 0 ≤ (2 : ℝ) := by norm_num
+    have two_delta_nonneg : 0 ≤ 2 * δ := by
+      apply mul_nonneg two_nonneg hδ_nonneg
+    have two_delta_pos : 0 < 2 * δ + 1 := by
+      exact lt_add_of_le_of_pos two_delta_nonneg (by norm_num)
+    have n1_pos : 0 < (n + 1 : ℝ) := by exact_mod_cast (Nat.succ_pos n)
+    apply one_div_pos.mpr
+    apply mul_pos two_delta_pos n1_pos
+
+  have h_inf : ∃ y ∈ Set.range (fun a : A => ‖x - a‖), y < δ + eps := by
+    by_contra H
+    have hlb : lowerBounds (Set.range fun a : A => ‖x - a‖) (δ + eps) := by
+      intro y hy
+      have : ¬ (y < δ + eps) := by
+        intro hylt
+        apply H
+        exact ⟨y, hy, hylt⟩
+      exact le_of_not_gt this
+    have : δ + eps ≤ δ := by
+      apply le_csInf hne_range
+      exact hlb
+    have le_eps_nonpos : eps ≤ 0 := by linarith [this]
+    exact (lt_irrefl 0 (lt_of_lt_of_le eps_pos le_eps_nonpos))
+
+  rcases h_inf with ⟨y, ⟨⟨a, ha_eq⟩, hy⟩⟩
+  have hy' : ‖x - (a : H)‖ < δ + eps := by simpa [ha_eq] using hy
+  have h1 : ‖x - (a : H)‖ ^ 2 ≤ (δ + eps) ^ 2 := by
+    apply pow_le_pow_left₀ (norm_nonneg (x - (a : H)))
+    exact le_of_lt hy'
+
+  have two_nonneg : 0 ≤ (2 : ℝ) := by norm_num
+  have two_delta_nonneg : 0 ≤ 2 * δ := by
+    apply mul_nonneg two_nonneg hδ_nonneg
+  have two_delta_ge0_add1 : (1 : ℝ) ≤ 2 * δ + 1 := by
+    calc
+      (1 : ℝ) = 1 + 0 := by ring
+      _ ≤ 1 + 2 * δ := by apply add_le_add_left two_delta_nonneg
+      _ = 2 * δ + 1 := by ring
+  have hn0 : 0 ≤ (n : ℝ) := by exact_mod_cast (Nat.zero_le n)
+  have n1_ge1 : (1 : ℝ) ≤ (n + 1 : ℝ) := by
+    calc
+      (1 : ℝ) = 1 + 0 := by ring
+      _ ≤ 1 + n := by apply add_le_add_left hn0
+      _ = n + 1 := by ring
+  have mult_nonneg_n : 0 ≤ (2 * δ + 1) * (n : ℝ) := by
+    apply mul_nonneg
+    · linarith [two_delta_nonneg]
+    · exact_mod_cast (Nat.zero_le n)
+  have step1 : 2 * δ + 1 ≤ (2 * δ + 1) + (2 * δ + 1) * (n : ℝ) := by
+    calc
+      2 * δ + 1 = (2 * δ + 1) + 0 := by ring
+      _ ≤ (2 * δ + 1) + (2 * δ + 1) * (n : ℝ) := by apply add_le_add_left mult_nonneg_n
+  have denom_ge1 : 1 ≤ (2 * δ + 1) * (n + 1) := by
+    calc
+      (1 : ℝ) ≤ 2 * δ + 1 := by exact two_delta_ge0_add1
+      _ = (2 * δ + 1) + 0 := by ring
+      _ ≤ (2 * δ + 1) + (2 * δ + 1) * (n : ℝ) := by apply add_le_add_left mult_nonneg_n
+      _ = (2 * δ + 1) * (n + 1) := by ring
+  have two_delta_pos : 0 < 2 * δ + 1 := by
+    have : 0 ≤ 2 * δ := mul_nonneg (by norm_num) hδ_nonneg
+    exact lt_add_of_le_of_pos this (by norm_num)
+  have denom_pos : 0 < (2 * δ + 1) * (n + 1) := by
+    have : 0 < (n + 1 : ℝ) := by exact_mod_cast (Nat.succ_pos n)
+    apply mul_pos two_delta_pos this
+  have eps_nonneg : 0 ≤ eps := by linarith [eps_pos]
+  have eps_sq_le_eps : eps ^ 2 ≤ eps := by
+    dsimp [eps]
+    have : ((1 / ((2 * δ + 1) * (n + 1))) ^ 2 ≤ 1 / ((2 * δ + 1) * (n + 1))) ↔
+      1 ≤ (2 * δ + 1) * (n + 1) := by
+      field_simp [denom_pos]
+    exact (this.mpr denom_ge1)
+
+  have h2 : (δ + eps) ^ 2 ≤ δ ^ 2 + 1 / (n + 1) := by
+    have inter : 2 * δ * eps + eps ^ 2 ≤ 2 * δ * eps + eps := by
+      apply add_le_add_left eps_sq_le_eps (2 * δ * eps)
+    calc
+      (δ + eps) ^ 2 = δ ^ 2 + (2 * δ * eps + eps ^ 2) := by ring
+      _ ≤ δ ^ 2 + (2 * δ * eps + eps) := by apply add_le_add_left inter
+      _ = δ ^ 2 + (2 * δ + 1) * eps := by ring
+      _ = δ ^ 2 + 1 / (n + 1) := by
+        dsimp [eps]
+        field_simp [denom_pos]
+  have hfinal : ‖x - (a : H)‖ ^ 2 ≤ δ ^ 2 + 1 / (n + 1) := by
+    exact le_trans h1 h2
+  use (a : H), (Subtype.prop a), hfinal
+
 
 -- midpoint of two points in convex set is in the set
 lemma midpoint_mem_of_convex {A : Set V} (hconv : ConvexSet A) (a b : A) :
