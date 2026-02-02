@@ -686,16 +686,13 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
     -- Define Kernel, U = ker G
     let U : Submodule ℂ H := {
       carrier := {x : H | G x = 0}
-      -- Additive closure
       add_mem' := by
         intro x y hx hy
         dsimp at hx hy ⊢
         simp only [ContinuousLinearMap.map_add, hx, hy, zero_add]
-      -- Zero element
       zero_mem' := by
         dsimp
         exact ContinuousLinearMap.map_zero G
-      -- Closed under scalar multiplication
       smul_mem' := by
         intro c x hx
         dsimp at hx ⊢
@@ -799,43 +796,34 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
           simp [this]
 
     obtain ⟨z, hz_span, hz_norm⟩ := dim_orth_one
-    -- The below code is for remove_u
-    -- Derive hz_in_orth : z ∈ Uᗮ from v₀ ∈ Uᗮ and v₀ = c₀ • z
-    -- v₀ ≠ 0 since G v₀ ≠ 0
     have v₀_ne0 : (v₀ : H) ≠ 0 := by
       intro hv
       apply Gv₀_ne
       simp [hv]
 
-    -- v₀ is a scalar multiple of z
     obtain ⟨c₀, hc₀⟩ := hz_span (v₀ : H) hv₀_in_orth
 
-    -- c₀ ≠ 0, otherwise v₀ = 0
     have c₀_ne0 : c₀ ≠ 0 := by
       intro hc
       apply v₀_ne0
       simpa [hc] using hc₀
 
-    -- scale hc₀ by c₀⁻¹
     have hz_eq' :
         (c₀⁻¹ : ℂ) • (v₀ : H) = (c₀⁻¹ * c₀) • z := by
-      --apply (c₀⁻¹)• to both sides of hc₀ : v₀ = c₀ • z
 
       have := congrArg (fun t : H => (c₀⁻¹ : ℂ) • t) hc₀
       simpa [smul_smul] using this
 
-    -- explicitly get (c₀⁻¹ * c₀ : ℂ) = 1 (type-ascription avoids the "expected Type" error)
+
     have hmul : (c₀⁻¹ * c₀ : ℂ) = 1 := by
       field_simp [c₀_ne0]
 
-    -- now solve for z
     have hz_eq : (c₀⁻¹ : ℂ) • (v₀ : H) = z := by
       calc
         (c₀⁻¹ : ℂ) • (v₀ : H) = (c₀⁻¹ * c₀) • z := hz_eq'
         _ = (1 : ℂ) • z := by simp [hmul]
         _ = z := by simp
 
-    -- conclude z ∈ Uᗮ since Uᗮ is a submodule and v₀ ∈ Uᗮ
     have hz_in_orth : (z : H) ∈ U.carrier ⟂ := by
       have : (c₀⁻¹ : ℂ) • (v₀ : H) ∈ U.carrier ⟂ :=
         Submodule.smul_mem (U.carrier ⟂) (c₀⁻¹ : ℂ) hv₀_in_orth
@@ -847,11 +835,10 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
     -- Show that G(x) = ⟪x, y⟫ for all x
     have G_eq_inner : ∀ x : H, G x = ⟪y, x⟫_ℂ := by
       intro x
-      -- Decompose x using orthogonal_decompose
+
       have ⟨u, hu_eq, hu_unique⟩ := orthogonal_decompose U U_closed x
       obtain ⟨v, hv_eq, hv_unique⟩ := hu_eq
 
-      -- Get properties of u, v
       have hu_in_U : (u : H) ∈ U.carrier := u.property
       have hv_in_orth : (v : H) ∈ U.carrier ⟂ := v.property
       have hx_decomp : x = (u : H) + (v : H) := hv_eq
@@ -867,11 +854,10 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
         rw [hx_decomp]
       have remove_u :
     ⟪(starRingEnd ℂ) (G z) • z, (u : H)⟫_ℂ = 0 := by
-  -- from z ∈ Uᗮ we get ⟪u, z⟫ = 0
+
         have huz : ⟪z, (u : H)⟫_ℂ = 0 := by
           exact hz_in_orth (u : H) hu_in_U
 
-  -- flip to ⟪z, u⟫ = 0
         have huz' : ⟪(u : H), z⟫_ℂ = 0 := by
           calc
             ⟪(u : H), z⟫_ℂ = (starRingEnd ℂ) (⟪z, (u : H)⟫_ℂ) := by
@@ -904,17 +890,14 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
       have hy_norm : ‖y‖ = ‖G z‖ := by
         simp [y, norm_smul, hz_norm]
 
-      -- Upper bound: OperatorNorm G ≤ ‖y‖
       have h_le : OperatorNorm G ≤ ‖y‖ := by
         unfold OperatorNorm
         refine csSup_le ?hs_ne ?bound
-        · -- nonempty: 0 is in the set
-          refine ⟨0, ?_⟩
+        · refine ⟨0, ?_⟩
           refine ⟨(0 : H), ?_, by simp⟩
           simp
         · intro b hb
           rcases hb with ⟨x, hx, rfl⟩
-          -- use YOUR Cauchy–Schwarz lemma
           have hcs : ‖G x‖ ≤ ‖y‖ * ‖x‖ := by
             simpa [G_eq_inner x] using (cauchy_schwartz (V := H) y x)
           have hmul : ‖y‖ * ‖x‖ ≤ ‖y‖ := by
@@ -936,7 +919,6 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
               ‖G z‖
               (operator_cts_then_bdd (V := H) G)
               hz_mem
-        -- rewrite ‖y‖ as ‖G z‖
         simpa [hy_norm] using this
 
       exact le_antisymm h_le h_ge
@@ -947,21 +929,15 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
         (∀ x : H, G x = ⟪y', x⟫_ℂ) ∧ OperatorNorm G = ‖y'‖ → y' = y := by
       intro y' hy'
       rcases hy' with ⟨hy'_eq, _⟩
-      -- show y' - y = 0
       have h0 : ∀ x : H, ⟪y' - y, x⟫_ℂ = 0 := by
         intro x
-        -- ⟪y',x⟫ = ⟪y,x⟫ since both equal G x
         have : ⟪y', x⟫_ℂ = ⟪y, x⟫_ℂ := by
           calc
             ⟪y', x⟫_ℂ = G x := by simp [hy'_eq x]
             _ = ⟪y, x⟫_ℂ := by simp [G_eq_inner x]
-
-        -- ⟪y' - y, x⟫ = ⟪y',x⟫ - ⟪y,x⟫
         simp [inner_sub_left, this]  -- gives 0
       have hself : ⟪y' - y, y' - y⟫_ℂ = 0 := h0 (y' - y)
-      -- turn ⟪v,v⟫ = 0 into v = 0
       have : y' - y = 0 := by
-        -- inner_self_eq_zero : ⟪v,v⟫ = 0 ↔ v = 0
         exact (inner_self_eq_zero).1 hself
       exact sub_eq_zero.mp this
 
@@ -969,15 +945,12 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
 
   -- Case G = 0
   · push_neg at h
-    -- G is identically 0
     have hG0 : ∀ x : H, G x = 0 := by
       intro x
       exact h x
 
-    -- compute OperatorNorm G = 0
     have hOp0 : OperatorNorm G = 0 := by
       unfold OperatorNorm
-      -- show the image is exactly {0}
       have himage :
           Set.image (fun x : H => ‖G x‖) {x : H | ‖x‖ ≤ 1} = ({0} : Set ℝ) := by
         ext r
@@ -986,32 +959,25 @@ theorem riesz_rep (G : H →L[ℂ] ℂ) :
           rcases hr with ⟨x, hx, rfl⟩
           simp [hG0 x]
         · intro hr
-          -- r = 0, achieved at x = 0
           have : r = 0 := by simpa using hr
           subst this
           refine ⟨(0 : H), ?_, by simp [hG0 (0 : H)]⟩
           simp
-      -- now sSup {0} = 0
       simp [himage]
 
-    -- existence: y = 0 works
     refine ⟨(0 : H), ?_, ?_⟩
     · constructor
       · intro x
         simp [hG0 x]
-      · -- OperatorNorm G = ‖0‖
-        simp [hOp0]
+      · simp [hOp0]
 
-    -- uniqueness: any y' representing 0 must be 0
     · intro y' hy'
       rcases hy' with ⟨hy'_eq, _⟩
-      -- from G=0 and representation, ⟪y', x⟫ = 0 for all x
+
       have h0 : ∀ x : H, ⟪y', x⟫_ℂ = 0 := by
         intro x
         have : G x = 0 := hG0 x
-        -- hy'_eq x : G x = ⟪y', x⟫
         simpa [hy'_eq x] using this
-      -- plug x = y' to get y' = 0
       have : y' = 0 := (inner_self_eq_zero).1 (h0 y')
       simp [this]
     --- End of riesz_rep theorem
