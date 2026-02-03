@@ -153,17 +153,18 @@ theorem operator_bound (x : V) (T : V →L[ℂ] ℂ) : ‖T x‖ ≤  ‖T‖_op
           ConditionallyCompleteLattice.le_csSup s ‖T ((1/‖x‖)•x)‖ (operator_cts_then_bdd T) this
         · exact norm_nonneg x
 
+-- Defn 5.15 : ConvexSet contains line segment connecting any two points in the set
+def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
+  ∀ (x y : V) (_hx : x ∈ S) (_hy : y ∈ S) (t : ℝ) (_ht : 0 ≤ t ∧ t ≤ 1),
+    (1 - t) • x + t • y ∈ S
+
+
 -- HILBERT SPACES
 
 -- Define Hilbert space over ℂ (assuming Completeness from Mathlib)
 variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 variable [CompleteSpace H] -- Hilbert Space
 variable (U : Submodule ℂ H) -- U subspace of H
-
--- Defn 5.15 : ConvexSet contains line segment connecting any two points in the set
-def ConvexSet {V : Type*} [AddCommMonoid V] [Module ℝ V] (S : Set V) : Prop :=
-  ∀ (x y : V) (_hx : x ∈ S) (_hy : y ∈ S) (t : ℝ) (_ht : 0 ≤ t ∧ t ≤ 1),
-    (1 - t) • x + t • y ∈ S
 
 -- Existence of sequence in Prop 5.16
 lemma exists_sequence {H : Type*} [NormedAddCommGroup H] (x : H) (A : Set H) (hne : A.Nonempty)
