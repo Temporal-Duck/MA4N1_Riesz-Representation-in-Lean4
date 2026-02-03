@@ -7,7 +7,7 @@ $$
 G(x) = \langle x, y \rangle = F_y(x)
 $$
 
-and $\|G\|_{H^*} = \|F_y\|_{H^*} = \|y\|$.<br>
+and $\|G\|_{H^{\*}} = \|F_y\|_{H^{\*}} = \|y\|$.<br>
 In MA3G7, we work with complex inner product spaces and Hilbert spaces, so we do the same here. Here is the outline of the formalisation:
 
 ## Inner product spaces
@@ -34,5 +34,5 @@ These are used directly in the proof of Riesz representation theorem.
 
 ## Methodology
 
-In terms of the formalisations, we haven't deviated too far from the proofs provided in the MA3G8 notes. One thing we realised was that complex inner products in LEAN, by convention, are conjugate linear in the first entry. This is different to the notes which doesn't change the proofs that much but it was something to be careful of when formalising. For example, OrthogonalComplement was initially defined as $X^{\perp} = \\{ y \in H : \forall x \in X \ \langle x, y \rangle = 0 \\} $, which is wrong (should be $\langle x, y \rangle = 0$).<br>
+In terms of the formalisations, we haven't deviated too far from the proofs provided in the MA3G8 notes. One thing we realised was that complex inner products in LEAN, by convention, are conjugate linear in the first entry. This is different to the notes which doesn't change the proofs that much but it was something to be careful of when formalising. For example, OrthogonalComplement was initially defined as $X^{\perp} = \\{ y \in H : \forall x \in X \ \langle x, y \rangle = 0 \\} $, which is wrong (should be $\langle y, x \rangle = 0$).<br>
 As we practiced with LEAN, we became more familiar with how to use certain tools to look for tactics and theorems. One of these was [LeanSearch](https://leansearch.net/), which is an AI powered lean search engine. Where we had to look for theorems like Cauchy Schwarz inequality, the Mathlib docs wouldn't be helpful because its name, 'inner_mul_inner_self_le' is entirely different. LeanSearch can search this theorem with the query 'Cauchy Schwarz'. 
